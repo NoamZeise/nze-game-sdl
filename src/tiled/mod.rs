@@ -8,7 +8,7 @@ use quick_xml::events::Event;
 use quick_xml::reader::Reader;
 
 mod tileset;
-use tileset::Tileset;
+mod layer;
 mod helper;
 use helper::*;
 pub mod error;
@@ -60,6 +60,22 @@ pub struct Text {
     pub pixel_size : u32,
     pub wrap : i32,
     pub font_family : String,
+}
+
+pub struct Tileset {
+    pub first_tile_id : u32,
+    pub name : String,
+    pub tile_width : u32,
+    pub tile_height : u32,
+    pub tile_count : u32,
+    pub column_count : u32,
+
+    pub margin : u32,
+    pub spacing : u32,
+
+    pub image_path : String,
+    pub image_width : u32,
+    pub image_height : u32,
 }
 
 pub enum Orientation {
@@ -155,7 +171,7 @@ impl Map {
                     
                     match e.name().as_ref() {
                         b"map" => Self::parse_map_attribs(&mut map, collect_attribs(&e)?)?,
-                        
+                        b"layer" => map.layers.push(Layer::blank()), //add layer properly
                         _ => println!("unrecognized tag {:?}", e.name()),
                     }
                 },
@@ -218,6 +234,7 @@ mod tiled_tests {
         assert!(map.tilesets[0].image_height == 32);
 
         assert!(map.layers.len() == 2);
+        assert!(map.layers[0].props.booleans["collidable"] == false);
         
 
         assert!(false, "more to check");

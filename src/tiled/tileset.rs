@@ -1,28 +1,12 @@
 use super::helper::*;
 use super::error::TiledError;
+use super::Tileset;
 
 use std::io::Read;
 
 use quick_xml::events::attributes::Attribute;
 use quick_xml::events::Event;
 use quick_xml::reader::Reader;
-
-pub struct Tileset {
-    pub first_tile_id : u32,
-    pub name : String,
-    pub tile_width : u32,
-    pub tile_height : u32,
-    pub tile_count : u32,
-    pub column_count : u32,
-
-    pub margin : u32,
-    pub spacing : u32,
-
-    pub image_path : String,
-    pub image_width : u32,
-    pub image_height : u32,
-}
-
 
 impl Tileset {
     fn blank() -> Tileset {
