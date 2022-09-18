@@ -1,28 +1,10 @@
 use super::helper::*;
 use super::error::TiledError;
-
-use std::io::Read;
+use super::Tileset;
 
 use quick_xml::events::attributes::Attribute;
-use quick_xml::events::Event;
+use quick_xml::events::BytesStart;
 use quick_xml::reader::Reader;
-
-pub struct Tileset {
-    pub first_tile_id : u32,
-    pub name : String,
-    pub tile_width : u32,
-    pub tile_height : u32,
-    pub tile_count : u32,
-    pub column_count : u32,
-
-    pub margin : u32,
-    pub spacing : u32,
-
-    pub image_path : String,
-    pub image_width : u32,
-    pub image_height : u32,
-}
-
 
 impl Tileset {
     fn blank() -> Tileset {
@@ -38,75 +20,50 @@ impl Tileset {
             image_path : String::from(""),
             image_width : 0,
             image_height : 0,
+            version : String::new(),
+            tiledversion : String::new(),
             }
     }
 
-    fn parse_tileset_attribs(tileset : &mut Self, attribs : Vec<Attribute>) -> Result<(), TiledError> {
+    fn parse_tileset_attribs(&mut self, attribs : Vec<Attribute>) -> Result<(), TiledError> {
         for a in attribs {
             match a.key.as_ref() {
-                b"name" => tileset.name = get_value(&a.value)?,
-                b"tilewidth" => tileset.tile_width = get_value(&a.value)?,
-                b"tileheight" => tileset.tile_height = get_value(&a.value)?,
-                b"spacing" => tileset.spacing = get_value(&a.value)?,
-                b"margin" => tileset.margin = get_value(&a.value)?,
-                b"tilecount" => tileset.tile_count = get_value(&a.value)?,
-                b"columns" => tileset.column_count = get_value(&a.value)?,
+                b"name" => self.name = get_value(&a.value)?,
+                b"tilewidth" => self.tile_width = get_value(&a.value)?,
+                b"tileheight" => self.tile_height = get_value(&a.value)?,
+                b"spacing" => self.spacing = get_value(&a.value)?,
+                b"margin" => self.margin = get_value(&a.value)?,
+                b"tilecount" => self.tile_count = get_value(&a.value)?,
+                b"columns" => self.column_count = get_value(&a.value)?,
+                b"version" => self.version = get_string(&a.value)?.to_string(),
+                b"tiledversion" => self.tiledversion = get_string(&a.value)?.to_string(),
                 _ => println!("warning: unrecognized attribute {:?}", a.key),
             }
         }
         Ok(())
     }
 
-    fn parse_image_attribs(tileset: &mut Self, attribs : Vec<Attribute>, path : &String) -> Result<(), TiledError> {
-        tileset.image_path = path.to_owned();
+    fn parse_image_attribs(&mut self, attribs : Vec<Attribute>) -> Result<(), TiledError> {
         for a in attribs {
             match a.key.as_ref() {
-                b"source" => tileset.image_path.push_str(get_string(&a.value)?),
-                b"width" => tileset.image_width = get_value(&a.value)?,
-                b"height" => tileset.image_height = get_value(&a.value)?,
+                b"source" => self.image_path.push_str(get_string(&a.value)?),
+                b"width" => self.image_width = get_value(&a.value)?,
+                b"height" => self.image_height = get_value(&a.value)?,
                 _ => println!("warning: unrecognized attribute {:?}", a.key),
             }
         }
         Ok(())
     }
     
-    fn parse_xml(tileset : &mut Self, tsx_text : String, path : &String) -> Result<(), TiledError>{
+    fn parse_xml(tileset : &mut Self, tsx_text : String) -> Result<(), TiledError>{
         let mut reader = Reader::from_str(&tsx_text);
-        loop {
-            match reader.read_event() {
-                Err(e) => {
-                    return Err(TiledError::ParseError(e.to_string()));
-                }
-                Ok(Event::Eof) => break,
-                Ok(Event::Start(e)) => {                
-                    let mut s = String::new();
-                    e.name().as_ref().read_to_string(&mut s).unwrap();
-                    println!("tag: {}", s);
-                    
-                    match e.name().as_ref() {
-                        b"tileset" => Self::parse_tileset_attribs(tileset, collect_attribs(&e)?)?,
-                        _ => println!("unrecognized tag {:?}", e.name()),
-                    }
-                },
-                Ok(Event::Empty(e)) => {
-                    let mut s = String::new();
-                    e.name().as_ref().read_to_string(&mut s).unwrap();
-                    println!("empty tag: {}", s);
-                    match e.name().as_ref() {
-                        b"image" => Self::parse_image_attribs(tileset, collect_attribs(&e)?, path)?,
-                        _ => println!("unrecognized empty tag {:?}", e.name()),
-                    }
-                }
-                _ => (),
-            }
-        }
-        
-        Ok(())
+        parse_xml(tileset, &mut reader)
     }
     
     pub fn new(attribs : Vec<Attribute>, path : String) -> Result<Tileset, TiledError> {
         let mut tmx_path = path.clone();
         let mut tileset = Self::blank();
+        tileset.image_path = path;
         for a in attribs {
             match a.key.as_ref() {
                 b"firstgid" => tileset.first_tile_id = get_value(&a.value)?,
@@ -116,8 +73,7 @@ impl Tileset {
                         read_file_to_string( {
                             tmx_path.push_str(get_string(&a.value)?);
                             &tmx_path
-                        })?,
-                        &path
+                        })?
                     )?;
                 }
                 _  => println!("warning: unrecognized atrribute {:?}", a.key),
@@ -125,5 +81,25 @@ impl Tileset {
         }
         
         Ok(tileset)
+    }
+}
+
+impl HandleXml for Tileset {
+    fn start(&mut self, e : &BytesStart, _: &mut Reader<&[u8]>) -> Result<(), TiledError> {
+        match e.name().as_ref() {
+            b"tileset" => self.parse_tileset_attribs(collect_attribs(&e)?)?,
+            _ => println!("unrecognized tag {:?}", e.name()),
+        }
+        Ok(())
+    }
+    fn empty(&mut self, e : &BytesStart) -> Result<(), TiledError> {
+        match e.name().as_ref() {
+            b"image" => self.parse_image_attribs(collect_attribs(&e)?)?,
+            _ => println!("unrecognized empty tag {:?}", e.name()),
+        }
+        Ok(())
+    }
+    fn self_tag() -> &'static str {
+        "tileset"
     }
 }
