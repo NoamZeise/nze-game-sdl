@@ -1,6 +1,5 @@
-use crate::geometry::{Rect, Vec2};
-
 use std::collections::HashMap;
+use geometry::{Rect, Vec2};
 
 use quick_xml::events::attributes::Attribute;
 use quick_xml::events::BytesStart;

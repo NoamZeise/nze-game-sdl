@@ -3,8 +3,8 @@ use sdl2::keyboard::Keycode;
 use sdl2::pixels::Color;
 use sdl2::image;
 
-use sdl_test::geometry::Vec2;
-use sdl_test::{TextureManager, FontManager, GameObject};
+use geometry::Vec2;
+use sdl_test::{TextureManager, FontManager, GameObject, map};
 use sdl_test::input::Typing;
 
 use std::time::Instant;
@@ -35,6 +35,8 @@ pub fn main() -> Result<(), String> {
     let mut test_text = GameObject::new(texture_manager.load(Path::new("textures/gaia.png"))?);
     test_text.draw_rect.x = 350.0;
     test_text.draw_rect.y = 170.0;
+
+    let mut map = map::Map::new("test-resources/test.tmx").unwrap();
     
     
     //video_subsystem.text_input().start();

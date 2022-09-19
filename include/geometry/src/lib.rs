@@ -1,7 +1,3 @@
-//! Shape structs with `f64` members
-
-use sdl2::rect;
-
 use std::ops;
 
 ///  A rectangle where x,y represents the coord of the upper left corner
@@ -37,20 +33,6 @@ impl Rect {
         }
         
         Rect { x: smallest.x, y: smallest.y, w: dim.x, h: dim.y }
-    }
-    
-    /// Use an `sdl2::rect::Rect` to construct a `Rect`
-    pub fn new_from_sdl_rect(sdl_rect : &rect::Rect) -> Self {
-        Rect {
-            x: sdl_rect.x as f64,
-            y: sdl_rect.y as f64,
-            w: sdl_rect.w as f64,
-            h: sdl_rect.h as f64
-        }
-    }
-    /// construct an `sdl2::rect::Rect` using this `Rect`
-    pub fn to_sdl_rect(&self) -> rect::Rect {
-        rect::Rect::new(self.x as i32, self.y as i32, self.w as u32, self.h as u32)
     }
 
     pub fn centre(&self) -> Vec2 {

@@ -2,8 +2,7 @@
 use super::{helper::*, LayerData, ObjData, Text, TextHorizontalAlign, TextVerticalAlign, Colour};
 use super::error::TiledError;
 use super::{ObjGroup, Obj, Poly, Properties};
-use crate::Rect;
-use crate::geometry::Vec2;
+use geometry::{Rect, Vec2};
 
 use quick_xml::events::attributes::Attribute;
 use quick_xml::events::{BytesStart, BytesText};

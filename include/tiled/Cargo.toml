@@ -1,5 +1,5 @@
 [package]
-name = "sdl-test"
+name = "tiled"
 version = "0.1.0"
 edition = "2021"
 
@@ -7,9 +7,4 @@ edition = "2021"
 
 [dependencies]
 quick-xml = "0.24.0"
-tiled = { path = "include/tiled/" }
-geometry = { path = "include/geometry/" }
-
-[dependencies.sdl2]
-version = "0.35"
-features = ["ttf", "image", "mixer"]
+geometry = {path = "../geometry"}

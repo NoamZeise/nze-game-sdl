@@ -9,7 +9,7 @@ use quick_xml::reader::Reader;
 use super::{LayerData, Colour};
 use super::error::TiledError;
 
-use crate::Vec2;
+use geometry::Vec2;
 
 pub fn read_file_to_string(filename : &str) -> Result<String, TiledError> {
     let mut file = match File::open(filename) {
@@ -118,17 +118,16 @@ pub fn parse_xml<T : HandleXml>(this: &mut T, reader: &mut Reader::<&[u8]>) -> R
             },
             Ok(Event::Eof) => break,
             Ok(Event::Start(e)) => {
-                
-                let mut s = String::new();
-                e.name().as_ref().read_to_string(&mut s).unwrap();
-                println!("start tag: {}", s);
+                // let mut s = String::new();
+                // e.name().as_ref().read_to_string(&mut s).unwrap();
+                // println!("start tag: {}", s);
                 
                 <T as HandleXml>::start(this, &e, reader)?;
             },
             Ok(Event::End(e)) => {
-                let mut s = String::new();
-                e.name().as_ref().read_to_string(&mut s).unwrap();
-                println!("end tag: {}", s);
+               // let mut s = String::new();
+              //  e.name().as_ref().read_to_string(&mut s).unwrap();
+              //  println!("end tag: {}", s);
                 if e.name().as_ref() == <T as HandleXml>::self_tag().as_bytes() {
                     return Ok(())
                 }
@@ -137,9 +136,9 @@ pub fn parse_xml<T : HandleXml>(this: &mut T, reader: &mut Reader::<&[u8]>) -> R
                 <T as HandleXml>::text(this, &e)?;
             }
             Ok(Event::Empty(e)) => {
-                let mut s = String::new();
-                e.name().as_ref().read_to_string(&mut s).unwrap();
-                println!("empty tag: {}", s);
+                //  let mut s = String::new();
+                //  e.name().as_ref().read_to_string(&mut s).unwrap();
+                //  println!("empty tag: {}", s);
                 
                 <T as HandleXml>::empty(this, &e)?;
             }
