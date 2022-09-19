@@ -316,7 +316,6 @@ mod tiled_tests {
         assert!(map.obj_groups[0].polys[0].obj.rect.w == 0.0);
         assert!(map.obj_groups[0].polys[0].obj.rect.h == 0.0);
 
-
         assert!(false, "more to check");
     }
 }
