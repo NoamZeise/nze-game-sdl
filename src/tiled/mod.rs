@@ -10,6 +10,7 @@ mod tileset;
 mod layer;
 mod object_group;
 mod properties;
+mod image_layer;
 mod helper;
 use helper::*;
 pub mod error;
@@ -20,6 +21,19 @@ pub struct Properties {
     pub integers : HashMap<String, i64>,
 }
 
+pub struct LayerData {
+    pub id: u32,
+    pub name: String,
+    pub visible: bool,
+    pub locked: bool,
+    pub opacity: f64,
+    pub colour : Colour,
+    pub tint : Colour,
+    pub index_draw_order: bool,
+    pub parallax: Vec2,
+    pub offset: Vec2,
+} 
+
 pub type LayerTiles = Vec<u32>;
 
 pub struct Layer {
@@ -27,16 +41,26 @@ pub struct Layer {
     pub tiles : LayerTiles,
     pub width : i32,
     pub height: i32,
-    pub id : i32,
-    pub name : String,
+    pub info: LayerData,
+}
+
+pub struct ObjData {
+    pub id: u32,
+    pub name: String,
+    pub type_name: String,
+    pub visible: bool,
 }
 
 pub struct Obj {
     pub props : Properties,
     pub rect : Rect,
-    pub id : u32,
-
+    pub rotation: f64,
+    pub info: ObjData,
     poly : Option<Box<Poly>>,
+    text : Option<Box<Text>>,
+    point: bool,
+    ellipse: bool,
+    pub template: Option<String>,
 }
 
 pub struct Poly {
@@ -45,17 +69,56 @@ pub struct Poly {
     pub closed : bool,
 }
 
+type Point = Obj;
+type Ellipse = Obj;
+
+#[derive(Eq, PartialEq)]
+pub enum TextHorizontalAlign {
+    Left,
+    Center,
+    Right,
+    Justify
+}
+
+#[derive(Eq, PartialEq)]
+pub enum TextVerticalAlign {
+    Top,
+    Center,
+    Bottom
+}
+
+pub struct Text {
+    pub obj: Obj,
+    pub text: String,
+    pub font_family: String,
+    pub pixel_size: u32,
+    pub wrap: bool,
+    pub bold: bool,
+    pub italic: bool,
+    pub horizontal_align : TextHorizontalAlign,
+    pub vertical_align : TextVerticalAlign,
+    pub colour: Colour,
+}
+
 pub struct ObjGroup {
     pub props : Properties,
     pub objs  : Vec<Obj>,
     pub polys : Vec<Poly>,
-    pub id : u32,
-    pub name : String,
+    pub points: Vec<Point>,
+    pub ellipse: Vec<Ellipse>,
+    pub text: Vec<Text>,
+    pub info: LayerData,
+    path: String,
 }
 
 pub struct ImageLayer {
     pub image_path : String,
-    pub position  : Vec2,
+    pub width: u32,
+    pub height: u32,
+    pub repeat_x: bool,
+    pub repeat_y: bool,
+    pub info: LayerData,
+    pub props: Properties,
 }
 
 pub struct Colour {
@@ -63,15 +126,6 @@ pub struct Colour {
     pub g : u32,
     pub b : u32,
     pub a : u32,
-}
-
-pub struct Text {
-    pub obj : Obj,
-    pub colour : Colour,
-    pub text : String,
-    pub pixel_size : u32,
-    pub wrap : i32,
-    pub font_family : String,
 }
 
 pub struct Tileset {
@@ -219,7 +273,8 @@ impl HandleXml for Map {
         match e.name().as_ref() {
             b"map" => self.parse_map_attribs(collect_attribs(&e)?)?,
             b"layer" => self.layers.push(Layer::new(collect_attribs(&e)?, reader)?), //add layer properly
-            b"objectgroup" => self.obj_groups.push(ObjGroup::new(collect_attribs(&e)?, reader)?),
+            b"objectgroup" => self.obj_groups.push(ObjGroup::new(collect_attribs(&e)?, reader, self.path.clone())?),
+            b"imagelayer" => self.img_layers.push(ImageLayer::new(collect_attribs(&e)?, reader)?),
             _ => println!("unrecognized tag {:?}", e.name()),
         }
         Ok(())
@@ -288,18 +343,28 @@ mod tiled_tests {
                 1, 1, 1, 1,
             ]
         );
+        assert!(map.layers[1].info.id == 1);
+        assert!(map.layers[1].info.name == "Tile Layer 1");
+        assert!(map.layers[1].info.opacity == 0.90);
+        assert!(map.layers[1].info.tint.g == 0);
 
         assert!(map.obj_groups.len() == 2);
-        assert!(map.obj_groups[0].id == 3);
-        assert!(map.obj_groups[0].name == "obj1");
         assert!(map.obj_groups[0].props.booleans["obj_group"] == true);
         assert!(map.obj_groups[0].objs.len() == 2);
         assert!(map.obj_groups[0].polys.len() == 2);
+        assert!(map.obj_groups[0].points.len() == 1);
+        assert!(map.obj_groups[0].ellipse.len() == 1);
+        assert!(map.obj_groups[0].ellipse[0].rotation == 10.0);
+        assert!(map.obj_groups[0].points[0].info.name == "dd");
         assert!(map.obj_groups[0].objs[1].props.integers["num"] == 5);
         assert!(map.obj_groups[0].objs[1].props.booleans["test"] == true);
-        assert!(map.obj_groups[0].objs[1].id == 2);
-        assert!(map.obj_groups[0].objs[1].rect.x == 6.52017);
-        assert!(map.obj_groups[0].objs[1].rect.y == 7.58597);
+        assert!(map.obj_groups[0].objs[1].rotation == 343.734);
+        assert!(map.obj_groups[0].objs[1].info.type_name == "asd");
+        assert!(map.obj_groups[0].objs[0].info.name == "barry");
+        assert!(map.obj_groups[0].objs[0].info.visible == false);
+        assert!(map.obj_groups[0].objs[1].info.id == 2);
+        assert!(map.obj_groups[0].objs[1].rect.x == 4.25998);
+        assert!(map.obj_groups[0].objs[1].rect.y == 10.0772);
         assert!(map.obj_groups[0].objs[1].rect.w == 15.1719);
         assert!(map.obj_groups[0].objs[1].rect.h == 18.3066);
         assert!(map.obj_groups[0].objs[0].rect.x == 28.6511);
@@ -311,11 +376,81 @@ mod tiled_tests {
         assert!(map.obj_groups[0].polys[1].obj.rect.w == 0.0);
         assert!(map.obj_groups[0].polys[1].obj.rect.h == 0.0);
         assert!(map.obj_groups[0].polys[1].obj.props.booleans["open"] == true);
+        assert!(map.obj_groups[0].polys[1].closed == false);
+        assert!(map.obj_groups[0].polys[1].points.iter()
+                .map(|Vec2 {x, y}| {
+                    (*x as i32,  *y as i32)
+                })
+                .collect::<Vec<(i32, i32)>>() ==
+                vec![
+                    (0, 0),
+                    (15, -3),
+                    (4, 13),
+                    ]
+        );
         assert!(map.obj_groups[0].polys[0].obj.rect.x == 9.15332);
         assert!(map.obj_groups[0].polys[0].obj.rect.y == 33.7294);
         assert!(map.obj_groups[0].polys[0].obj.rect.w == 0.0);
         assert!(map.obj_groups[0].polys[0].obj.rect.h == 0.0);
+        assert!(map.obj_groups[0].polys[0].closed == true);
+        assert!(map.obj_groups[0].polys[0].points.iter()
+                .map(|Vec2 {x, y}| {
+                    (*x as i32,  *y as i32)
+                })
+                .collect::<Vec<(i32, i32)>>() ==
+                vec![
+                    (0, 0),
+                    (0, -7),
+                    (9, -1),
+                    ]
+        );
+        assert!(map.obj_groups[0].text.len() == 1);
+        assert!(map.obj_groups[0].text[0].text == "Hello World");
+        assert!(map.obj_groups[0].text[0].font_family == "MS Sans Serif");
+        assert!(map.obj_groups[0].text[0].colour.r == 98);
+        assert!(map.obj_groups[0].text[0].horizontal_align == TextHorizontalAlign::Justify);
+        assert!(map.obj_groups[0].text[0].vertical_align == TextVerticalAlign::Center);
+        assert!(map.obj_groups[0].text[0].italic == true);
+        assert!(map.obj_groups[0].text[0].bold == true);
+        assert!(map.obj_groups[0].text[0].wrap == true);
+        assert!(map.obj_groups[0].text[0].pixel_size == 29);
 
-        assert!(false, "more to check");
+        assert!(map.obj_groups[1].info.id == 5);
+        assert!(map.obj_groups[1].info.name == "obj2s");
+        assert!(map.obj_groups[1].info.index_draw_order == true);
+        assert!(map.obj_groups[1].info.offset.x == 5.05);
+        assert!(map.obj_groups[1].info.parallax.x == 1.10);
+        assert!(map.obj_groups[1].info.colour.r == 85);
+        assert!(map.obj_groups[1].info.colour.a == 10);
+        assert!(map.obj_groups[1].info.visible == true);
+        assert!(map.obj_groups[1].info.locked == true);
+        assert!(map.obj_groups[1].info.tint.g == 115);
+        assert!(map.obj_groups[1].info.tint.a == 255);
+        assert!(map.obj_groups[1].props.booleans["collidable"] == true);
+        assert!(map.obj_groups[1].objs.len() == 2);
+        assert!(map.obj_groups[1].polys.len() == 0);
+        assert!(map.obj_groups[1].objs[1].info.id == 8);
+        assert!(map.obj_groups[1].objs[1].rect.x == 10.0);
+        assert!(map.obj_groups[1].objs[1].rect.y == 20.0);
+        assert!(map.obj_groups[1].objs[1].rect.w == 20.0);
+        assert!(map.obj_groups[1].objs[1].rect.h == 0.0);
+        assert!(map.obj_groups[1].objs[0].info.id == 9);
+        assert!(map.obj_groups[1].objs[0].rect.x == 0.0);
+        assert!(map.obj_groups[1].objs[0].rect.y == 0.0);
+        assert!(map.obj_groups[1].objs[0].rect.w == 20.0);
+        assert!(map.obj_groups[1].objs[0].rect.h == 10.0);
+        assert!(map.obj_groups[1].objs[0].props.booleans["test_coll"] == true);
+
+        assert!(map.img_layers.len() == 1);
+        assert!(map.img_layers[0].info.offset.x == 19.247);
+        assert!(map.img_layers[0].info.offset.y == -10.3445);
+        assert!(map.img_layers[0].image_path == "test-tileset.png");
+        assert!(map.img_layers[0].width == 32);
+        assert!(map.img_layers[0].height == 32);
+        assert!(map.img_layers[0].repeat_x == false);
+        assert!(map.img_layers[0].repeat_y == true);
+        assert!(map.img_layers[0].info.parallax.x == 2.07);
+        assert!(map.img_layers[0].info.parallax.y ==  1.0);
+        assert!(map.img_layers[0].props.booleans["img"] == false);
     }
 }

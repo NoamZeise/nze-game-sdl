@@ -1,5 +1,5 @@
 use super::LayerTiles;
-use super::{Layer, Properties, error::TiledError, helper::*};
+use super::{Layer, Properties, error::TiledError, helper::*, LayerData};
 
 use quick_xml::reader::Reader;
 use quick_xml::events::{BytesStart, BytesText};
@@ -12,8 +12,7 @@ impl Layer {
             tiles: Vec::new(),
             width: 0,
             height: 0,
-            id: 0,
-            name : String::new(),
+            info: LayerData::new(),
         }
     }
     pub fn new(attribs : Vec<Attribute>, reader: &mut Reader<&[u8]>) -> Result<Layer, TiledError> {
@@ -24,13 +23,13 @@ impl Layer {
     }
     fn parse_attribs(&mut self, attribs : Vec<Attribute>) -> Result<(), TiledError> {
         for a in attribs {
-             match a.key.as_ref() {
-                 b"width" => self.width = get_value(&a.value)?,
-                 b"height" => self.height = get_value(&a.value)?,
-                 b"id" => self.id = get_value(&a.value)?,
-                 b"name" => self.name = get_string(&a.value)?.to_string(),
-                 _ => println!("warning: unrecognized atrribute {:?}", a.key),
-             }
+            if let Some(()) = self.info.handle_attrib(&a)? {
+                match a.key.as_ref() {
+                    b"width" => self.width = get_value(&a.value)?,
+                    b"height" => self.height = get_value(&a.value)?,
+                    _ => println!("warning: unrecognized atrribute {:?}", a.key),
+                }
+            }
         }
         Ok(())
     }
@@ -42,12 +41,6 @@ impl HandleXml for Layer {
             b"data" => parse_xml(&mut self.tiles, reader)?,
             b"properties" => parse_xml(&mut self.props, reader)?,
             _ => println!("unrecognized tag {:?}", e.name()),
-        }
-        Ok(())
-    }
-    fn empty(&mut self, e : &BytesStart) -> Result<(), TiledError> {
-        match e.name().as_ref() {
-            _ => println!("unrecognized empty tag {:?}", e.name()),
         }
         Ok(())
     }
