@@ -1,3 +1,4 @@
+use sdl2::controller::GameController;
 use sdl2::render::{TextureCreator, Texture, Canvas};
 use sdl2::video::Window;
 use sdl2::image::LoadTexture;
@@ -11,6 +12,7 @@ use std::clone::Clone;
 pub mod input;
 use geometry::*;
 pub mod map;
+pub mod camera;
 
 trait RectConversion {
     fn new_from_sdl_rect(sdl_rect : &sdl2::rect::Rect) -> Self;
@@ -49,27 +51,45 @@ pub mod resource {
     }
 }
 
-/// holds a `Texture` and some `Rect`s for representing sprites
 #[derive(Clone, Copy)]
 pub struct GameObject {
+    texture: resource::Texture,
+    rect: Rect,
+    tex_rect: Rect,
+    parallax: Vec2,
+}
+
+impl GameObject {
+    pub fn new_from_tex(texture: resource::Texture) -> Self {
+        let r = Rect::new(0.0, 0.0, texture.width as f64, texture.height as f64);
+        Self {
+            texture,
+            rect: r,
+            tex_rect : r,
+            parallax: Vec2::new(1.0, 1.0),
+        }
+    }
+    pub fn new(texture : resource::Texture, rect : Rect, tex_rect: Rect, parallax : Vec2) -> Self {
+        Self {
+            texture,
+            rect,
+            tex_rect,
+            parallax,
+        }
+    }
+}
+
+/// holds a `Texture` and some `Rect`s for representing sprites
+#[derive(Clone, Copy)]
+pub struct TextureDraw {
     pub draw_rect : Rect,
     pub tex_rect : Rect,
     pub tex  : resource::Texture,
 }
 
-impl GameObject {
-    /// The draw_rect is automatically the width and height of the supplied `Texture`
-    pub fn new_from_tex(texture: resource::Texture) -> Self {
-        let r = Rect::new(0.0, 0.0, texture.width as f64, texture.height as f64);
-        GameObject {
-            draw_rect: r,
-            tex_rect : r,
-            tex: texture,
-        }
-    }
-
+impl TextureDraw {
     pub fn new(tex : resource::Texture, draw_rect : Rect, tex_rect: Rect) -> Self {
-        GameObject {
+        TextureDraw {
             draw_rect,
             tex_rect,
             tex
@@ -101,6 +121,9 @@ impl<'a, T> TextureManager<'a, T> {
             false => {
                 self.textures.push(self.texture_creator.load_texture(path)?);
                 self.loaded_texture_paths.insert(path_as_string, self.textures.len() - 1);
+
+                println!("loaded: {}", path.to_str().unwrap());
+
                 self.textures.len() - 1
             },
         };
@@ -114,11 +137,11 @@ impl<'a, T> TextureManager<'a, T> {
 
     }
 /// draw a `GameObject` to the canvas
-    pub fn draw(&self, canvas : &mut Canvas<Window>, game_obj: &GameObject) -> Result<(), String> {
+    pub fn draw(&self, canvas : &mut Canvas<Window>, tex_draw: &TextureDraw) -> Result<(), String> {
         canvas.copy(
-            &self.textures[game_obj.tex.id],
-            game_obj.tex_rect.to_sdl_rect(),
-            game_obj.draw_rect.to_sdl_rect()
+            &self.textures[tex_draw.tex.id],
+            tex_draw.tex_rect.to_sdl_rect(),
+            tex_draw.draw_rect.to_sdl_rect()
         )
     }
 
