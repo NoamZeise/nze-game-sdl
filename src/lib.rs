@@ -52,11 +52,46 @@ pub mod resource {
 }
 
 #[derive(Clone, Copy)]
+pub struct Colour {
+    r: u8,
+    g: u8,
+    b: u8,
+    a: u8
+}
+
+impl Colour {
+    pub fn new(r: u8, g: u8, b: u8, a: u8) -> Colour {
+        Colour { r, g, b, a }
+    }
+    pub fn new_from_floats(r: f64, g: f64, b: f64, a: f64) -> Colour {
+        Self::new(
+            (r / 255.0) as u8,
+            (g / 255.0) as u8,
+            (b / 255.0) as u8,
+            (a / 255.0) as u8,
+        ) 
+    }
+    pub fn white() -> Colour {
+        Self::new(255, 255, 255, 255)
+    }
+
+    pub fn to_sdl2_colour(&self) -> Color {
+        Color {
+            r: self.r,
+            g: self.g,
+            b: self.b,
+            a: self.a,
+        }
+    }
+}
+
+#[derive(Clone, Copy)]
 pub struct GameObject {
     texture: resource::Texture,
     rect: Rect,
     tex_rect: Rect,
     parallax: Vec2,
+    colour: Colour
 }
 
 impl GameObject {
@@ -67,14 +102,16 @@ impl GameObject {
             rect: r,
             tex_rect : r,
             parallax: Vec2::new(1.0, 1.0),
+            colour: Colour::white(),
         }
     }
-    pub fn new(texture : resource::Texture, rect : Rect, tex_rect: Rect, parallax : Vec2) -> Self {
+    pub fn new(texture : resource::Texture, rect : Rect, tex_rect: Rect, parallax : Vec2, colour: Colour) -> Self {
         Self {
             texture,
             rect,
             tex_rect,
             parallax,
+            colour,
         }
     }
 }
@@ -84,14 +121,16 @@ impl GameObject {
 pub struct TextureDraw {
     pub draw_rect : Rect,
     pub tex_rect : Rect,
+    pub colour : Colour,
     pub tex  : resource::Texture,
 }
 
 impl TextureDraw {
-    pub fn new(tex : resource::Texture, draw_rect : Rect, tex_rect: Rect) -> Self {
+    pub fn new(tex : resource::Texture, draw_rect : Rect, tex_rect: Rect, colour: Colour) -> Self {
         TextureDraw {
             draw_rect,
             tex_rect,
+            colour,
             tex
         }
     }
@@ -137,7 +176,13 @@ impl<'a, T> TextureManager<'a, T> {
 
     }
 /// draw a `GameObject` to the canvas
-    pub fn draw(&self, canvas : &mut Canvas<Window>, tex_draw: &TextureDraw) -> Result<(), String> {
+    pub fn draw(&mut self, canvas : &mut Canvas<Window>, tex_draw: TextureDraw) -> Result<(), String> {
+        self.textures[tex_draw.tex.id].set_color_mod(
+            tex_draw.colour.r,
+            tex_draw.colour.g,
+            tex_draw.colour.b
+        );
+        self.textures[tex_draw.tex.id].set_alpha_mod(tex_draw.colour.a);
         canvas.copy(
             &self.textures[tex_draw.tex.id],
             tex_draw.tex_rect.to_sdl_rect(),

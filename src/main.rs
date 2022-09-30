@@ -1,10 +1,13 @@
-use sdl2::event::Event;
+
+use sdl2::event::{Event, WindowEvent};
 use sdl2::keyboard::Keycode;
 use sdl2::pixels::Color;
 use sdl2::image;
+use sdl2::video::Window;
+use sdl2::render::Canvas;
 
 use geometry::Vec2;
-use sdl_test::{TextureManager, FontManager, GameObject, map, camera::Camera};
+use sdl_test::{TextureManager, FontManager, map, camera::Camera};
 use sdl_test::input::Typing;
 
 use std::time::Instant;
@@ -16,8 +19,8 @@ pub fn main() -> Result<(), String> {
     let _image_context = image::init(image::InitFlag::PNG);
 
     let mut cam = Camera::new(
-        geometry::Rect::new(0.0, 0.0, 640.0, 480.0),
-        geometry::Vec2::new(500.0, 500.0)
+        geometry::Rect::new(0.0, 0.0, 240.0, 160.0),
+        geometry::Vec2::new(240.0, 160.0)
     );
     
     let window = video_subsystem
@@ -26,7 +29,6 @@ pub fn main() -> Result<(), String> {
             cam.get_window_size().x as u32,
             cam.get_window_size().y as u32
         )
-        .resizable()
         .opengl()
         .build()
         .map_err(|e| e.to_string())?;
@@ -44,7 +46,7 @@ pub fn main() -> Result<(), String> {
 
     let mono_font = font_manager.load_font(Path::new("textures/FiraCode-Light.ttf"))?;
 
-    let mut map = map::Map::new("test-resources/level0.tmx", &mut texture_manager).unwrap();
+    let mut map = map::Map::new("test-resources/test.tmx", &mut texture_manager).unwrap();
     
     canvas.set_blend_mode(sdl2::render::BlendMode::Blend);
     
@@ -56,25 +58,22 @@ pub fn main() -> Result<(), String> {
         let start_time = Instant::now();
         for event in event_pump.poll_iter() {
             match event {
-                Event::Quit { .. }
-                | Event::KeyDown {
-                    keycode: Some(Keycode::Escape),
-                    ..
-                } => break 'running,
-                _ => {
-                    println!("event: {:?}", event);
-                    //resize window changes camera~!
-                }
+                Event::Quit { .. } | Event::KeyDown {  keycode: Some(Keycode::Escape), ..} => break 'running,
+                _ => { }
             }
             typing.handle_event(&event);
+            handle_event(&event, &mut canvas, &mut cam)?;
         }
         
-        canvas.set_draw_color(Color::RGB(100, 100, 100));
+        canvas.set_draw_color(Color::RGB(0, 0, 0));
         canvas.clear();
         
-        map.draw(&mut canvas, &texture_manager, &cam)?;
-        font_manager.draw(&mut canvas, &mono_font, "SDL2-Game", 50, Vec2::new(50.0, 100.0), Color::RGBA(255, 255, 255, 255))?;
+        map.draw(&mut cam);
         
+        for d in cam.drain_draws() {
+            texture_manager.draw(&mut canvas, d)?;
+        }
+      
         canvas.present();
         
         let mut pos = cam.get_offset();
@@ -92,11 +91,60 @@ pub fn main() -> Result<(), String> {
             pos.y += SPEED * prev_frame;
         }
         cam.set_offset(pos);
-
-        println!("canvas width: {}", canvas.window().size().0);
         
         prev_frame = start_time.elapsed().as_secs_f64();
+
+        //println!("prev frame: {} fps", 1.0/prev_frame);
     }
 
+    Ok(())
+}
+
+
+fn handle_event(event: &Event, canvas: &mut Canvas<Window>, cam: &mut Camera) -> Result<(), String> {
+    match event {
+        Event::KeyDown {
+            keycode: Some(Keycode::Equals),
+            ..
+        } => {
+            let mut cs = cam.get_window_size();
+            if cs.x < cam.get_view_size().x {
+                cs.x *= 2.0;
+                cs.y *= 2.0;
+            } else {
+                cs.x += cam.get_view_size().x/2.0;
+                cs.y += cam.get_view_size().y/2.0;
+            }
+            set_win_size(canvas, cam, cs)?;
+        },
+        Event::KeyDown {
+            keycode: Some(Keycode::Minus),
+            ..
+        } => {
+            let mut cs = cam.get_window_size();
+            if cs.x <= cam.get_view_size().x {
+                cs.x /= 2.0;
+                cs.y /= 2.0;
+            } else {
+                cs.x -= cam.get_view_size().x/2.0;
+                cs.y -= cam.get_view_size().y/2.0;
+            }
+            set_win_size(canvas, cam, cs)?;
+        },
+        _ => {}
+    }
+    Ok(())
+}
+
+fn set_win_size(canvas: &mut Canvas<Window>, cam: &mut Camera, cs: Vec2) -> Result<(), String> {
+    match canvas.window_mut().set_size(cs.x as u32, cs.y as u32) {
+        Err(_) => { return Err(String::from("failed to resize window"));},
+        _ => ()
+    }
+    cam.set_window_size(cs);
+    canvas.window_mut().set_position(
+        sdl2::video::WindowPos::Centered,
+        sdl2::video::WindowPos::Centered
+    );
     Ok(())
 }

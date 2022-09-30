@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use tiled;
-use crate::{TextDraw, GameObject, resource, camera::Camera};
+use crate::{TextDraw, GameObject, resource, camera::Camera, Colour};
 use crate::{TextureManager, resource::Texture};
 use sdl2::render::Canvas;
 use sdl2::video::Window;
@@ -66,6 +66,12 @@ impl Layer {
                         ),
                         tile.rect,
                         l.info.parallax,
+                        Colour::new(
+                            l.info.tint.r as u8,
+                            l.info.tint.g as u8,
+                            l.info.tint.b as u8,
+                            (l.info.opacity * 255.0) as u8,
+                        )
                     )
                 );
             }
@@ -94,15 +100,13 @@ impl Map {
         Ok(map)
     }
 
-    pub fn draw<'sdl, TexType>(&self, canvas : &mut Canvas<Window>, tex_manager : &'sdl TextureManager<TexType>, cam: &Camera) -> Result<(), String> {
+    pub fn draw(&self, cam: &mut Camera) {
         for l in self.layers.iter() {
             for t in l.tile_draws.iter() {
-                tex_manager.draw(canvas, &cam.to_camera_space(&t))?;
+                cam.add_cam_space(t);
             }
         }
-        Ok(())
     }
-
 
     fn load_tilesets<'sdl, TexType>(&mut self, tex_manager : &'sdl mut TextureManager<TexType>) -> Result<(), String> {
         self.tiles.resize(self.tiled_map.total_tiles as usize, Tile::new());
