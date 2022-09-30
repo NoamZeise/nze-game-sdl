@@ -1,7 +1,7 @@
 use std::ops;
 
 ///  A rectangle where x,y represents the coord of the upper left corner
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 pub struct Rect {
     pub x : f64,
     pub y : f64,
@@ -12,6 +12,10 @@ pub struct Rect {
 impl Rect {
     pub fn new(x: f64, y: f64, w: f64, h: f64) -> Self {
         Rect { x, y, w, h }
+    }
+
+    pub fn blank() -> Rect {
+        Rect::new(0.0, 0.0, 0.0, 0.0)
     }
 
     pub fn new_from_vec2s(v1 : &Vec2, v2 : &Vec2) -> Self {

@@ -37,33 +37,42 @@ impl RectConversion for Rect{
 pub mod resource {
 //! represent sdl2 textures and fonts as cheap structs that hold indexes for resource managers
 
-    #[derive(Clone)]
+    #[derive(Clone, Copy)]
     pub struct Texture {
         pub id:     usize,
         pub width:  u32,
         pub height: u32
     }
-    #[derive(Clone)]
+    #[derive(Clone, Copy)]
     pub struct Font {
         pub id : usize,
     }
 }
 
 /// holds a `Texture` and some `Rect`s for representing sprites
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 pub struct GameObject {
     pub draw_rect : Rect,
-    pub tex_rect : Option<Rect>,
+    pub tex_rect : Rect,
     pub tex  : resource::Texture,
 }
 
 impl GameObject {
     /// The draw_rect is automatically the width and height of the supplied `Texture`
-    pub fn new(texture: resource::Texture) -> Self {
+    pub fn new_from_tex(texture: resource::Texture) -> Self {
+        let r = Rect::new(0.0, 0.0, texture.width as f64, texture.height as f64);
         GameObject {
-            draw_rect: Rect::new(0.0, 0.0, texture.width as f64, texture.height     as f64),
-            tex_rect : None,
+            draw_rect: r,
+            tex_rect : r,
             tex: texture,
+        }
+    }
+
+    pub fn new(tex : resource::Texture, draw_rect : Rect, tex_rect: Rect) -> Self {
+        GameObject {
+            draw_rect,
+            tex_rect,
+            tex
         }
     }
 }
@@ -108,10 +117,7 @@ impl<'a, T> TextureManager<'a, T> {
     pub fn draw(&self, canvas : &mut Canvas<Window>, game_obj: &GameObject) -> Result<(), String> {
         canvas.copy(
             &self.textures[game_obj.tex.id],
-            match &game_obj.tex_rect {
-                Some(r) => Some(r.to_sdl_rect()),
-                None => None
-            },
+            game_obj.tex_rect.to_sdl_rect(),
             game_obj.draw_rect.to_sdl_rect()
         )
     }

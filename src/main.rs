@@ -32,14 +32,14 @@ pub fn main() -> Result<(), String> {
     let mut font_manager = FontManager::new(&ttf_context, &texture_creator)?;
 
     let mono_font = font_manager.load_font(Path::new("textures/FiraCode-Light.ttf"))?;
-    let mut test_text = GameObject::new(texture_manager.load(Path::new("textures/gaia.png"))?);
+    let mut test_text = GameObject::new_from_tex(texture_manager.load(Path::new("textures/gaia.png"))?);
     test_text.draw_rect.x = 350.0;
     test_text.draw_rect.y = 170.0;
-
-    let mut map = map::Map::new("test-resources/test.tmx").unwrap();
+    //test_text.tex_rect.x += 50.0;
+    //test_text.tex_rect.w *= 0.5;
+ //   test_text.tex_recttest_text.tex.width / 2;
+    let mut map = map::Map::new("test-resources/test.tmx", &mut texture_manager).unwrap();
     
-    
-    //video_subsystem.text_input().start();
     canvas.set_blend_mode(sdl2::render::BlendMode::Blend);
 
     let mut event_pump = sdl_context.event_pump()?;
@@ -62,8 +62,9 @@ pub fn main() -> Result<(), String> {
         canvas.set_draw_color(Color::RGB(10, 10, 10));
         canvas.clear();
         
-        font_manager.draw(&mut canvas, &mono_font, "Hello, World!", 50, Vec2::new(50.0, 100.0), Color::RGBA(255, 255, 255, 255))?;
+        font_manager.draw(&mut canvas, &mono_font, "SDL2-Game", 50, Vec2::new(50.0, 100.0), Color::RGBA(255, 255, 255, 255))?;
         texture_manager.draw(&mut canvas, &test_text)?;
+        map.draw(&mut canvas, &texture_manager)?;
         
         canvas.present();
 

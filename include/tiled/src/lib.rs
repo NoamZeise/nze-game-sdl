@@ -207,7 +207,7 @@ impl Map {
             height : 0,
             tile_width : 0,
             tile_height : 0,
-            total_tiles : 0,
+            total_tiles : 1,
             infinite : false,
             orientation : Orientation::Orthogonal,
 
@@ -280,9 +280,12 @@ impl HandleXml for Map {
     }
     fn empty(&mut self, e : &BytesStart) -> Result<(), TiledError> {
         match e.name().as_ref() {
-            b"tileset" => self.tilesets.push(
-                Tileset::new(collect_attribs(&e)?, self.path.clone())?//String::from(path))?
-            ),
+            b"tileset" => {
+                self.tilesets.push(
+                    Tileset::new(collect_attribs(&e)?, self.path.clone())?
+                );
+                self.total_tiles += self.tilesets.last().unwrap().tile_count;
+            },
             _ => println!("unrecognized empty tag {:?}", e.name()),
         }
         Ok(())
