@@ -1,5 +1,5 @@
 
-use sdl2::event::{Event, WindowEvent};
+use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::pixels::Color;
 use sdl2::image;
@@ -7,7 +7,7 @@ use sdl2::video::Window;
 use sdl2::render::Canvas;
 
 use geometry::Vec2;
-use sdl_test::{TextureManager, FontManager, map, camera::Camera};
+use sdl_test::{texture_manager::TextureManager, font_manager::FontManager, map, camera::Camera};
 use sdl_test::input::Typing;
 
 use std::time::Instant;
@@ -16,7 +16,7 @@ use std::path::Path;
 pub fn main() -> Result<(), String> {
     let sdl_context = sdl2::init()?;
     let video_subsystem = sdl_context.video()?;
-    let _image_context = image::init(image::InitFlag::PNG);
+    let _image_context = image::init(image::InitFlag::PNG)?;
 
     let mut cam = Camera::new(
         geometry::Rect::new(0.0, 0.0, 240.0, 160.0),

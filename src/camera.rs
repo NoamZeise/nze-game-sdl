@@ -1,5 +1,5 @@
 use geometry::*;
-use crate::{TextureDraw, GameObject, TextDraw};
+use crate::{TextureDraw, GameObject};
 use std::vec::Drain;
 
 pub struct Camera {

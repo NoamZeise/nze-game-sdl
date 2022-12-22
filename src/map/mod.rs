@@ -1,10 +1,9 @@
 use std::path::Path;
 
 use tiled;
-use crate::{TextDraw, GameObject, resource, camera::Camera, Colour};
-use crate::{TextureManager, resource::Texture};
-use sdl2::render::Canvas;
-use sdl2::video::Window;
+use crate::{GameObject, resource, camera::Camera, Colour};
+use crate::resource::Texture;
+use crate::texture_manager::TextureManager;
 use geometry::Rect;
 
 #[derive(Clone)]
