@@ -1,9 +1,5 @@
-use camera::Camera;
-use font_manager::FontManager;
-use sdl2::{pixels::Color, Sdl, VideoSubsystem, image::Sdl2ImageContext, video::{Window, WindowContext}, render::{Canvas, TextureCreator}, EventPump};
-use texture_manager::TextureManager;
-
-use std::{clone::Clone, slice::Windows};
+use sdl2::pixels::Color;
+use std::clone::Clone;
 
 pub mod input;
 use geometry::*;
@@ -11,6 +7,7 @@ pub mod map;
 pub mod camera;
 pub mod texture_manager;
 pub mod font_manager;
+pub mod resource;
 
 pub trait RectConversion {
     fn new_from_sdl_rect(sdl_rect : &sdl2::rect::Rect) -> Self;
@@ -31,21 +28,6 @@ impl RectConversion for Rect{
     /// construct an `sdl2::rect::Rect` using this `Rect`
     fn to_sdl_rect(&self) -> sdl2::rect::Rect {
         sdl2::rect::Rect::new(self.x as i32, self.y as i32, self.w as u32, self.h as u32)
-    }
-}
-
-pub mod resource {
-//! represent sdl2 textures and fonts as cheap structs that hold indexes for resource managers
-
-    #[derive(Clone, Copy)]
-    pub struct Texture {
-        pub id:     usize,
-        pub width:  u32,
-        pub height: u32
-    }
-    #[derive(Clone, Copy)]
-    pub struct Font {
-        pub id : usize,
     }
 }
 
@@ -114,22 +96,3 @@ impl GameObject {
     }
 }
 
-/// holds a `Texture` and some `Rect`s for representing sprites
-#[derive(Clone, Copy)]
-pub struct TextureDraw {
-    pub draw_rect : Rect,
-    pub tex_rect : Rect,
-    pub colour : Colour,
-    pub tex  : resource::Texture,
-}
-
-impl TextureDraw {
-    pub fn new(tex : resource::Texture, draw_rect : Rect, tex_rect: Rect, colour: Colour) -> Self {
-        TextureDraw {
-            draw_rect,
-            tex_rect,
-            colour,
-            tex
-        }
-    }
-}

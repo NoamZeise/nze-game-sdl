@@ -27,7 +27,7 @@ impl Mouse {
 
 /// Holds character typed that frame, and the state of some useful buttons for typing
 #[derive(Copy, Clone)]
-pub struct Typing {
+pub struct Keyboard {
     pub up        : bool,
     pub down      : bool,
     pub left      : bool,
@@ -38,10 +38,10 @@ pub struct Typing {
     character     : Option<char>,
 }
 
-impl Typing {
+impl Keyboard {
 
     pub fn new() -> Self {
-        Typing {
+        Keyboard {
             up        : false,
             down      : false,
             left      : false,

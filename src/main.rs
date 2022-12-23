@@ -1,4 +1,3 @@
-
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::pixels::Color;
@@ -7,8 +6,7 @@ use sdl2::video::Window;
 use sdl2::render::Canvas;
 
 use geometry::Vec2;
-use sdl_test::{texture_manager::TextureManager, font_manager::FontManager, map, camera::Camera};
-use sdl_test::input::Typing;
+use sdl_helper::{texture_manager::TextureManager, font_manager::FontManager, map, camera::Camera, input::Keyboard};
 
 use std::time::Instant;
 use std::path::Path;
@@ -46,13 +44,13 @@ pub fn main() -> Result<(), String> {
 
     let mono_font = font_manager.load_font(Path::new("textures/FiraCode-Light.ttf"))?;
 
-    let mut map = map::Map::new("test-resources/test.tmx", &mut texture_manager).unwrap();
+    let map = map::Map::new("test-resources/test.tmx", &mut texture_manager).unwrap();
     
     canvas.set_blend_mode(sdl2::render::BlendMode::Blend);
     
 
     let mut event_pump = sdl_context.event_pump()?;
-    let mut typing = Typing::new();
+    let mut input = Keyboard::new();
     let mut prev_frame : f64 = 0.0;
     'running: loop {
         let start_time = Instant::now();
@@ -61,7 +59,7 @@ pub fn main() -> Result<(), String> {
                 Event::Quit { .. } | Event::KeyDown {  keycode: Some(Keycode::Escape), ..} => break 'running,
                 _ => { }
             }
-            typing.handle_event(&event);
+            input.handle_event(&event);
             handle_event(&event, &mut canvas, &mut cam)?;
         }
         
@@ -69,6 +67,9 @@ pub fn main() -> Result<(), String> {
         canvas.clear();
         
         map.draw(&mut cam);
+
+        font_manager.draw(&mut canvas, &mono_font, "Hello SDL!", 40, Vec2::new(10.0, 40.0), Color::RGB(255, 0, 255))?;
+        
         
         for d in cam.drain_draws() {
             texture_manager.draw(&mut canvas, d)?;
@@ -78,16 +79,16 @@ pub fn main() -> Result<(), String> {
         
         let mut pos = cam.get_offset();
         const SPEED : f64 = 500.0;
-        if typing.left {
+        if input.left {
             pos.x -= SPEED * prev_frame;
         }
-        if typing.right {
+        if input.right {
             pos.x += SPEED * prev_frame;
         }
-        if typing.up {
+        if input.up {
             pos.y -= SPEED * prev_frame;
         }
-        if typing.down {
+        if input.down {
             pos.y += SPEED * prev_frame;
         }
         cam.set_offset(pos);

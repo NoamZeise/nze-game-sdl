@@ -9,7 +9,28 @@ use std::path::Path;
 
 use crate::resource;
 use crate::RectConversion;
-use crate::TextureDraw;
+use crate::Colour;
+use geometry::*;
+
+/// holds a `Texture` and some `Rect`s for representing sprites
+#[derive(Clone, Copy)]
+pub struct TextureDraw {
+    pub draw_rect : Rect,
+    pub tex_rect : Rect,
+    pub colour : Colour,
+    pub tex  : resource::Texture,
+}
+
+impl TextureDraw {
+    pub fn new(tex : resource::Texture, draw_rect : Rect, tex_rect: Rect, colour: Colour) -> Self {
+        TextureDraw {
+            draw_rect,
+            tex_rect,
+            colour,
+            tex
+        }
+    }
+}
 
 /// stores textures that are referenced by a `resource::Texture` object
 pub struct TextureManager<'a, T> {

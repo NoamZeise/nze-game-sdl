@@ -1,14 +1,13 @@
 [package]
-name = "sdl-test"
+name = "sdl-helper"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-tiled = { path = "include/tiled/" }
-geometry = { path = "include/geometry/" }
-sdl-helper = { path = "include/sdl-helper"}
+geometry = { path = "../geometry/" }
+tiled = { path = "../tiled/" }
 
 [dependencies.sdl2]
 version = "0.35"
