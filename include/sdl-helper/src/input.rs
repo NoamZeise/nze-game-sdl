@@ -59,7 +59,7 @@ impl Keyboard {
         }
     }
 
-    pub fn handle_event(&mut self, event: &Event) {
+    pub(crate) fn handle_event(&mut self, event: &Event) {
         if event.is_keyboard() {
             self.handle_keyboard(event);
         } else if event.is_text() {

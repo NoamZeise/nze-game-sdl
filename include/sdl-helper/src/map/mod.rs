@@ -79,6 +79,7 @@ impl Layer {
     }
 }
 
+/// Used for drawing [tiled] maps
 pub struct Map {
     tiled_map: tiled::Map,
     tiles : Vec<Tile>,
@@ -102,7 +103,7 @@ impl Map {
     pub fn draw(&self, cam: &mut Camera) {
         for l in self.layers.iter() {
             for t in l.tile_draws.iter() {
-                cam.add_cam_space(t);
+                cam.draw(t);
             }
         }
     }

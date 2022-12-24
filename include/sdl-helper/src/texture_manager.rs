@@ -1,14 +1,11 @@
 use sdl2::render::{TextureCreator, Texture, Canvas};
 use sdl2::image::LoadTexture;
 use sdl2::video::Window;
-use sdl2::pixels::Color;
 
 use std::collections::HashMap;
 use std::path::Path;
 
-use crate::resource;
-use crate::rect_conversion::RectConversion;
-use crate::types::Colour;
+use crate::{resource, rect_conversion::RectConversion, types::Colour};
 use geometry::*;
 
 /// holds a `Texture` and some `Rect`s for representing sprites
@@ -32,7 +29,7 @@ impl TextureDraw {
 }
 
 
-/// stores textures that are referenced by a `resource::Texture` object
+/// stores textures that are referenced by a [resource::Texture] object
 pub struct TextureManager<'a, T> {
     texture_creator : &'a TextureCreator<T>,
     loaded_texture_paths : HashMap<String,  usize>,
@@ -40,15 +37,7 @@ pub struct TextureManager<'a, T> {
 }
 
 impl<'a, T> TextureManager<'a, T> {
-    pub fn new(tex_creator: &'a TextureCreator<T>) -> Self {
-
-        TextureManager {
-            texture_creator : tex_creator,
-            loaded_texture_paths: HashMap::new(),
-            textures : Vec::new(),
-        }
-    }
-/// load a texture to memory and get a `resource::Texture` object that references it
+/// load a texture to memory and get a [resource::Texture] object that references it
     pub fn load(&mut self, path : &Path) -> Result<resource::Texture, String> {
         let path_as_string = path.to_string_lossy().to_string();
         let tex_index = match self.loaded_texture_paths.contains_key(&path_as_string) {
@@ -71,8 +60,22 @@ impl<'a, T> TextureManager<'a, T> {
         })
 
     }
-/// draw a `GameObject` to the canvas
-    pub fn draw(&mut self, canvas : &mut Canvas<Window>, tex_draw: TextureDraw) -> Result<(), String> {
+
+    pub(crate) fn new(tex_creator: &'a TextureCreator<T>) -> Self {
+        TextureManager {
+            texture_creator : tex_creator,
+            loaded_texture_paths: HashMap::new(),
+            textures : Vec::new(),
+        }
+    }
+    
+    pub(crate) fn draw_rect(&self, canvas : &mut Canvas<Window>, rect : &geometry::Rect, colour : Colour) -> Result<(), String> {
+        canvas.set_draw_color(colour.to_sdl2_colour());
+        canvas.fill_rect(rect.to_sdl_rect())?;
+        Ok(())
+    }
+
+    pub(crate) fn draw(&mut self, canvas : &mut Canvas<Window>, tex_draw: TextureDraw) -> Result<(), String> {
         self.textures[tex_draw.tex.id].set_color_mod(
             tex_draw.colour.r,
             tex_draw.colour.g,
@@ -85,11 +88,4 @@ impl<'a, T> TextureManager<'a, T> {
             tex_draw.draw_rect.to_sdl_rect()
         )
     }
-
-    pub fn draw_rect(&self, canvas : &mut Canvas<Window>, rect : &geometry::Rect, colour : &geometry::Rect) -> Result<(), String> {
-        canvas.set_draw_color(Color::RGBA(colour.x as u8, colour.y as u8, colour.w as u8, colour.h as u8));
-        canvas.fill_rect(rect.to_sdl_rect())?;
-        Ok(())
-    }
 }
-

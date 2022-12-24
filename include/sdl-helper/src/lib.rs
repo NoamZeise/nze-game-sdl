@@ -1,6 +1,6 @@
+//! A library to abstract away the details of the sdl2 library for creating games easier
 use sdl2::pixels::Color;
-use sdl2::{Sdl, VideoSubsystem, EventPump};
-use sdl2::image;
+use sdl2::{Sdl, VideoSubsystem, EventPump, image};
 use sdl2::video::{Window, WindowContext};
 use sdl2::render::{Canvas, TextureCreator};
 
@@ -15,14 +15,16 @@ mod rect_conversion;
 
 pub use texture_manager::TextureManager;
 pub use camera::Camera;
-pub use font_manager::FontManager;
+pub use font_manager::{FontManager, TextDraw};
 pub use types::{Colour, GameObject};
 pub use map::Map;
 
 use geometry::*;
 
 
-
+/// This holds ownership of many sdl types that are required for being able to use it,
+/// but the context will not be changed after creation.
+/// It is created by [DrawingArea]
 pub struct ContextSdl {
     sdl_context : Sdl,
     _video_subsystem: VideoSubsystem,
@@ -57,11 +59,13 @@ impl ContextSdl {
 
 }
 
+/// Holds ownership of an sdl Canvas, this should be passed to [Render]
 pub struct DrawingArea {
     canvas: Canvas<Window>
 }
 
 impl DrawingArea {
+    ///returns the [ContextSdl] of this instance of sdl2, as well as a [DrawingArea]
     pub fn new(cam: &Camera) -> Result<(DrawingArea,ContextSdl), String> {
         let (mut canvas, holder) = ContextSdl::new(&cam)?;
         canvas.set_blend_mode(sdl2::render::BlendMode::Blend);
@@ -69,6 +73,8 @@ impl DrawingArea {
     }
 }
 
+/// Holds ownership of a [DrawingArea] and the resource managers.
+/// Also contains functions for doing the main update,draw loop
 pub struct Render<'sdl> {
     pub texture_manager: TextureManager<'sdl, WindowContext>,
     pub font_manager: FontManager<'sdl, WindowContext>,
@@ -86,29 +92,37 @@ impl<'sdl> Render<'sdl> {
             drawing_area,
         })
     }
-
+    /// Clears the [DrawingArea] for it to be filled with this frame's drawing instructions
     pub fn start_draw(&mut self) {
         self.drawing_area.canvas.set_draw_color(Color::BLACK);
         self.drawing_area.canvas.clear();
     }
 
+    ///drain the draws from [Camera] and draw to [DrawingArea]
     pub fn end_draw(&mut self, cam: &mut Camera) -> Result<(), String>{
         
         for d in cam.drain_draws() {
             self.texture_manager.draw(&mut self.drawing_area.canvas, d)?;
+        }
+        for d in cam.drain_tex_draws() {
+            self.font_manager.draw_disposable(&mut self.drawing_area.canvas, d)?;
+        }
+        for d in cam.drain_rect_draws() {
+            self.texture_manager.draw_rect(&mut self.drawing_area.canvas, &d.0, d.1)?;
         }
       
         self.drawing_area.canvas.present();
         Ok(())
     }
 
+    /// Update the input struct using the sdl events that occured between the previous call
     pub fn event_loop(&mut self, input: &mut input::Keyboard) {
         for event in self.event_pump.poll_iter() {
             input.handle_event(&event);
         }
     }
 
-    
+    /// Update the game window to the new size, and change the [Camera] to the new resolution
     pub fn set_win_size(&mut self, cam: &mut Camera, cs: Vec2) -> Result<(), String> {
         match self.drawing_area.canvas.window_mut().set_size(cs.x as u32, cs.y as u32) {
             Err(_) => { return Err(String::from("failed to resize window"));},

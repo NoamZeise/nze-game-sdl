@@ -1,12 +1,18 @@
 use geometry::*;
-use crate::{texture_manager::TextureDraw, font_manager::{TextDraw, DisposableTextDraw}, types::GameObject, Colour, resource};
+use crate::{texture_manager::TextureDraw, font_manager::DisposableTextDraw, types::GameObject, Colour, resource};
 use std::vec::Drain;
 
+/// holds buffered draw commands that render will consume at the end of each frame
+///
+/// Note: need to pass this to 'Render' at the end of each frame in order to see the draws on the screen
+///
+/// Note: set parallax to 0 if you want the object to be unaffected by the moving camera
 pub struct Camera {
     rect: Rect,
     window_size: Vec2,
     size_ratio: Vec2,
     draws : Vec<TextureDraw>,
+    rect_draws: Vec<(Rect, Colour)>,
     temp_text_draws: Vec<DisposableTextDraw>,
 }
 
@@ -17,17 +23,27 @@ impl Camera {
             window_size,
             draws: Vec::new(),
             temp_text_draws: Vec::new(),
+            rect_draws: Vec::new(),
             size_ratio: Vec2::new(0.0, 0.0),
         };
         cam.update_size_ratio();
         cam
     }
     
-    pub fn drain_draws(&mut self) -> Drain<TextureDraw> { 
+    pub(crate) fn drain_draws(&mut self) -> Drain<TextureDraw> { 
         self.draws.drain(..)
     }
-    
-    pub fn add_cam_space(&mut self, game_obj: &GameObject) {
+
+    pub(crate) fn drain_tex_draws(&mut self) -> Drain<DisposableTextDraw> { 
+        self.temp_text_draws.drain(..)
+    }
+
+    pub(crate) fn drain_rect_draws(&mut self) -> Drain<(Rect, Colour)> {
+        self.rect_draws.drain(..)
+    }
+
+    /// Draws a [GameObject] adjusted for the camera's position and scale
+    pub fn draw(&mut self, game_obj: &GameObject) {
         self.draws.push(
             TextureDraw::new(
                 game_obj.get_texture(),
@@ -38,15 +54,20 @@ impl Camera {
         );
     }
 
-    pub fn add_text_cam_space(&mut self, font: resource::Font, text: String, height: u32, pos: Vec2, colour: Colour, parallax: Vec2) {
+    /// Draws text adjusted for the camera's position and scale
+    pub fn draw_text(&mut self, font: &resource::Font, text: String, height: u32, pos: Vec2, colour: Colour, parallax: Vec2) {
         let rect = self.rect_to_cam_space(Rect::new(pos.x, pos.y, height as f64, height as f64), parallax);
         self.temp_text_draws.push(DisposableTextDraw {
-            font,
+            font: *font,
             text,
             height: rect.h as u32,
             pos: rect.top_left(),
             colour,
         })
+    }
+
+    pub fn draw_rect(&mut self, rect: Rect, colour: Colour) {
+        self.rect_draws.push((rect, colour));
     }
 
     pub fn get_offset(&self) -> Vec2 {

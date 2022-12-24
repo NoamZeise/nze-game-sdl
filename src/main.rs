@@ -1,5 +1,5 @@
-use sdl_helper::{Render, DrawingArea};
-use sdl_helper::{Map, Camera, input::Keyboard};
+use sdl_helper::{Map, Camera, input::Keyboard, Colour, Render, DrawingArea};
+use geometry::*;
 
 use std::time::Instant;
 use std::path::Path;
@@ -32,7 +32,7 @@ pub fn main() -> Result<(), String> {
         
         map.draw(&mut cam);
 
-        //render.font_manager.draw(&mut canvas, &mono_font, "Hello SDL!", 40, Vec2::new(10.0, 40.0), Color::RGB(255, 0, 255))?;
+        cam.draw_text(&mono_font, "Hello SDL!".to_string(), 40, Vec2::new(10.0, 40.0), Colour::white(), Vec2::new(1.0, 1.0));
         
         render.end_draw(&mut cam)?;
 

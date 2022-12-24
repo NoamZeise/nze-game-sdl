@@ -9,10 +9,10 @@ use std::path::Path;
 use geometry::Vec2;
 use crate::{resource, Colour};
 
-/// can be returned by `FontManager`, stores an sdl2 texture and a rect for drawing to a canvas
+/// can be returned by [FontManager], stores an sdl2 texture and a rect for drawing to a canvas
 pub struct TextDraw<'a> {
-    pub tex  : sdl2::render::Texture<'a>,
-    pub rect : sdl2::rect::Rect,
+    tex  : sdl2::render::Texture<'a>,
+    rect : sdl2::rect::Rect,
 }
 
 pub struct DisposableTextDraw {
@@ -34,7 +34,7 @@ pub struct FontManager<'a, T> {
 }
 
 impl<'a, T> FontManager<'a, T> {
-    pub fn new(ttf_context : &'a ttf::Sdl2TtfContext, texture_creator : &'a TextureCreator<T>) -> Result<Self, String> {
+    pub(crate) fn new(ttf_context : &'a ttf::Sdl2TtfContext, texture_creator : &'a TextureCreator<T>) -> Result<Self, String> {
         Ok(FontManager {
             texture_creator,
             ttf_context,
@@ -95,11 +95,16 @@ impl<'a, T> FontManager<'a, T> {
     }
 
     /// draws the supplied text to the canvas in the supplied font at the given height and position
-    pub fn draw(&self, canvas : &mut Canvas<Window>, font : &resource::Font, text: &str, height : u32, pos : Vec2, colour : Color) -> Result<(), String> {
+    pub(crate) fn draw(&self, canvas : &mut Canvas<Window>, font : &resource::Font, text: &str, height : u32, pos : Vec2, colour : Color) -> Result<(), String> {
         if text.len() == 0 { return Ok(()); }
         let mut tex_draw = self.get_draw(font, text, height, colour)?;
         tex_draw.rect.x = pos.x as i32;
         tex_draw.rect.y = pos.y as i32;
         canvas.copy(&tex_draw.tex, None, tex_draw.rect)
+    }
+
+    pub(crate) fn draw_disposable(&self, canvas: &mut Canvas<Window>, disposable: DisposableTextDraw) -> Result<(), String> {
+        self.draw(canvas, &disposable.font, &disposable.text, disposable.height, disposable.pos, disposable.colour.to_sdl2_colour())?;
+        Ok(())
     }
 }

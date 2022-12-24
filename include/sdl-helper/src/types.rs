@@ -2,6 +2,8 @@ use geometry::*;
 use sdl2::pixels::Color;
 use crate::resource;
 
+
+/// An RGBA colour with values from 0-255 for each channel
 #[derive(Clone, Copy)]
 pub struct Colour {
     pub r: u8,
@@ -26,7 +28,7 @@ impl Colour {
         Self::new(255, 255, 255, 255)
     }
 
-    pub fn to_sdl2_colour(&self) -> Color {
+    pub(crate) fn to_sdl2_colour(&self) -> Color {
         Color {
             r: self.r,
             g: self.g,
@@ -36,6 +38,7 @@ impl Colour {
     }
 }
 
+/// used by 'Camera' for drawing calls
 #[derive(Clone, Copy)]
 pub struct GameObject {
     texture: resource::Texture,
