@@ -1,4 +1,3 @@
-
 use sdl2::render::{TextureCreator, Canvas};
 use sdl2::video::Window;
 use sdl2::pixels::Color;
@@ -8,12 +7,20 @@ use std::collections::HashMap;
 use std::path::Path;
 
 use geometry::Vec2;
-use crate::resource;
+use crate::{resource, Colour};
 
 /// can be returned by `FontManager`, stores an sdl2 texture and a rect for drawing to a canvas
 pub struct TextDraw<'a> {
     pub tex  : sdl2::render::Texture<'a>,
     pub rect : sdl2::rect::Rect,
+}
+
+pub struct DisposableTextDraw {
+    pub font : resource::Font,
+    pub text: String,
+    pub height : u32,
+    pub pos : Vec2,
+    pub colour : Colour, 
 }
 
 const FONT_LOAD_SIZE : u16 = 128;

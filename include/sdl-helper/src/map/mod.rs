@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use tiled;
-use crate::{GameObject, resource, camera::Camera, Colour};
+use crate::{types::GameObject, resource, camera::Camera, types::Colour};
 use crate::resource::Texture;
 use crate::texture_manager::TextureManager;
 use geometry::Rect;

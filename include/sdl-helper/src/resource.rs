@@ -1,5 +1,3 @@
-
-
 #[derive(Clone, Copy)]
 pub struct Texture {
     pub id:     usize,

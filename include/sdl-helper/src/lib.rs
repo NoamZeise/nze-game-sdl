@@ -1,98 +1,124 @@
 use sdl2::pixels::Color;
-use std::clone::Clone;
+use sdl2::{Sdl, VideoSubsystem, EventPump};
+use sdl2::image;
+use sdl2::video::{Window, WindowContext};
+use sdl2::render::{Canvas, TextureCreator};
 
 pub mod input;
-use geometry::*;
-pub mod map;
-pub mod camera;
-pub mod texture_manager;
-pub mod font_manager;
+mod map;
+mod camera;
+mod texture_manager;
+mod font_manager;
 pub mod resource;
+mod types;
+mod rect_conversion;
 
-pub trait RectConversion {
-    fn new_from_sdl_rect(sdl_rect : &sdl2::rect::Rect) -> Self;
-    fn to_sdl_rect(&self) -> sdl2::rect::Rect;
+pub use texture_manager::TextureManager;
+pub use camera::Camera;
+pub use font_manager::FontManager;
+pub use types::{Colour, GameObject};
+pub use map::Map;
+
+use geometry::*;
+
+
+
+pub struct ContextSdl {
+    sdl_context : Sdl,
+    _video_subsystem: VideoSubsystem,
+    _image_context: image::Sdl2ImageContext,
+    ttf_context: sdl2::ttf::Sdl2TtfContext,
+    texture_creator: TextureCreator<WindowContext>,
 }
 
-impl RectConversion for Rect{
-    /// Use an `sdl2::rect::Rect` to construct a `Rect`
-    fn new_from_sdl_rect(sdl_rect : &sdl2::rect::Rect) -> Self {
-        Rect {
-            x: sdl_rect.x as f64,
-            y: sdl_rect.y as f64,
-            w: sdl_rect.w as f64,
-            h: sdl_rect.h as f64
+impl ContextSdl {
+    fn new(cam: &Camera) -> Result<(Canvas<Window>, ContextSdl), String> {
+        let sdl_context = sdl2::init()?;
+        let _video_subsystem = sdl_context.video()?;
+        let _image_context = image::init(image::InitFlag::PNG)?;
+        let ttf_context = sdl2::ttf::init().map_err(|e| e.to_string())?;
+        let window = _video_subsystem
+        .window(
+            "SDL2-Rust",
+            cam.get_window_size().x as u32, cam.get_window_size().y as u32)
+        .opengl()
+        .build()
+        .map_err(|e| e.to_string())?;
+
+    let canvas = window
+        .into_canvas()
+        .present_vsync()
+        .build()
+        .map_err(|e| e.to_string())?;
+        let texture_creator = canvas.texture_creator();
+
+        Ok((canvas, ContextSdl { sdl_context, _video_subsystem, _image_context, ttf_context, texture_creator}))
+    }
+
+}
+
+pub struct DrawingArea {
+    canvas: Canvas<Window>
+}
+
+impl DrawingArea {
+    pub fn new(cam: &Camera) -> Result<(DrawingArea,ContextSdl), String> {
+        let (mut canvas, holder) = ContextSdl::new(&cam)?;
+        canvas.set_blend_mode(sdl2::render::BlendMode::Blend);
+        Ok((DrawingArea { canvas }, holder))
+    }
+}
+
+pub struct Render<'sdl> {
+    pub texture_manager: TextureManager<'sdl, WindowContext>,
+    pub font_manager: FontManager<'sdl, WindowContext>,
+    event_pump: EventPump,
+    drawing_area: DrawingArea,
+}
+
+
+impl<'sdl> Render<'sdl> {
+    pub fn new(drawing_area: DrawingArea, context: &ContextSdl) -> Result<Render, String> {
+        Ok(Render {
+            texture_manager: TextureManager::new(&context.texture_creator),
+            font_manager: FontManager::new(&context.ttf_context, &context.texture_creator)?,
+            event_pump: context.sdl_context.event_pump()?,
+            drawing_area,
+        })
+    }
+
+    pub fn start_draw(&mut self) {
+        self.drawing_area.canvas.set_draw_color(Color::BLACK);
+        self.drawing_area.canvas.clear();
+    }
+
+    pub fn end_draw(&mut self, cam: &mut Camera) -> Result<(), String>{
+        
+        for d in cam.drain_draws() {
+            self.texture_manager.draw(&mut self.drawing_area.canvas, d)?;
+        }
+      
+        self.drawing_area.canvas.present();
+        Ok(())
+    }
+
+    pub fn event_loop(&mut self, input: &mut input::Keyboard) {
+        for event in self.event_pump.poll_iter() {
+            input.handle_event(&event);
         }
     }
+
     
-    /// construct an `sdl2::rect::Rect` using this `Rect`
-    fn to_sdl_rect(&self) -> sdl2::rect::Rect {
-        sdl2::rect::Rect::new(self.x as i32, self.y as i32, self.w as u32, self.h as u32)
-    }
-}
-
-#[derive(Clone, Copy)]
-pub struct Colour {
-    r: u8,
-    g: u8,
-    b: u8,
-    a: u8
-}
-
-impl Colour {
-    pub fn new(r: u8, g: u8, b: u8, a: u8) -> Colour {
-        Colour { r, g, b, a }
-    }
-    pub fn new_from_floats(r: f64, g: f64, b: f64, a: f64) -> Colour {
-        Self::new(
-            (r / 255.0) as u8,
-            (g / 255.0) as u8,
-            (b / 255.0) as u8,
-            (a / 255.0) as u8,
-        ) 
-    }
-    pub fn white() -> Colour {
-        Self::new(255, 255, 255, 255)
-    }
-
-    pub fn to_sdl2_colour(&self) -> Color {
-        Color {
-            r: self.r,
-            g: self.g,
-            b: self.b,
-            a: self.a,
+    pub fn set_win_size(&mut self, cam: &mut Camera, cs: Vec2) -> Result<(), String> {
+        match self.drawing_area.canvas.window_mut().set_size(cs.x as u32, cs.y as u32) {
+            Err(_) => { return Err(String::from("failed to resize window"));},
+            _ => ()
         }
+        cam.set_window_size(cs);
+        self.drawing_area.canvas.window_mut().set_position(
+            sdl2::video::WindowPos::Centered,
+            sdl2::video::WindowPos::Centered
+        );
+        Ok(())
     }
 }
-
-#[derive(Clone, Copy)]
-pub struct GameObject {
-    texture: resource::Texture,
-    rect: Rect,
-    tex_rect: Rect,
-    parallax: Vec2,
-    colour: Colour
-}
-
-impl GameObject {
-    pub fn new_from_tex(texture: resource::Texture) -> Self {
-        let r = Rect::new(0.0, 0.0, texture.width as f64, texture.height as f64);
-        Self {
-            texture,
-            rect: r,
-            tex_rect : r,
-            parallax: Vec2::new(1.0, 1.0),
-            colour: Colour::white(),
-        }
-    }
-    pub fn new(texture : resource::Texture, rect : Rect, tex_rect: Rect, parallax : Vec2, colour: Colour) -> Self {
-        Self {
-            texture,
-            rect,
-            tex_rect,
-            parallax,
-            colour,
-        }
-    }
-}
-

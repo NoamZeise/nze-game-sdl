@@ -1,5 +1,5 @@
 use geometry::*;
-use crate::{texture_manager::TextureDraw, GameObject};
+use crate::{texture_manager::TextureDraw, font_manager::{TextDraw, DisposableTextDraw}, types::GameObject, Colour, resource};
 use std::vec::Drain;
 
 pub struct Camera {
@@ -7,6 +7,7 @@ pub struct Camera {
     window_size: Vec2,
     size_ratio: Vec2,
     draws : Vec<TextureDraw>,
+    temp_text_draws: Vec<DisposableTextDraw>,
 }
 
 impl Camera {
@@ -15,13 +16,13 @@ impl Camera {
             rect,
             window_size,
             draws: Vec::new(),
+            temp_text_draws: Vec::new(),
             size_ratio: Vec2::new(0.0, 0.0),
         };
         cam.update_size_ratio();
         cam
     }
     
-
     pub fn drain_draws(&mut self) -> Drain<TextureDraw> { 
         self.draws.drain(..)
     }
@@ -29,17 +30,23 @@ impl Camera {
     pub fn add_cam_space(&mut self, game_obj: &GameObject) {
         self.draws.push(
             TextureDraw::new(
-                game_obj.texture,
-                Rect::new(
-                    ((game_obj.rect.x) - (self.rect.x * game_obj.parallax.x)) / self.size_ratio.x,
-                    ((game_obj.rect.y) - (self.rect.y * game_obj.parallax.y)) / self.size_ratio.y,
-                    game_obj.rect.w / self.size_ratio.x,
-                    game_obj.rect.h / self.size_ratio.y,
-                ),
+                game_obj.get_texture(),
+                self.rect_to_cam_space(game_obj.rect, game_obj.parallax),
                 game_obj.tex_rect,
                 game_obj.colour,
             )
         );
+    }
+
+    pub fn add_text_cam_space(&mut self, font: resource::Font, text: String, height: u32, pos: Vec2, colour: Colour, parallax: Vec2) {
+        let rect = self.rect_to_cam_space(Rect::new(pos.x, pos.y, height as f64, height as f64), parallax);
+        self.temp_text_draws.push(DisposableTextDraw {
+            font,
+            text,
+            height: rect.h as u32,
+            pos: rect.top_left(),
+            colour,
+        })
     }
 
     pub fn get_offset(&self) -> Vec2 {
@@ -78,5 +85,14 @@ impl Camera {
                 self.rect.w / self.window_size.x,
                 self.rect.h / self.window_size.y
         );
+    }
+
+    fn rect_to_cam_space(&self, rect: Rect, parallax: Vec2) -> Rect {
+        Rect::new(
+            ((rect.x) - (self.rect.x * parallax.x)) / self.size_ratio.x,
+            ((rect.y) - (self.rect.y * parallax.y)) / self.size_ratio.y,
+            rect.w / self.size_ratio.x,
+            rect.h / self.size_ratio.y,
+        )
     }
 }

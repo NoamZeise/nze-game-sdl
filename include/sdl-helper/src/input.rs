@@ -14,7 +14,7 @@ pub struct Mouse {
 }
 
 impl Mouse {
-    pub fn new() -> Self {
+    fn new() -> Self {
         Mouse {
             x: 0,
             y: 0,
@@ -34,6 +34,9 @@ pub struct Keyboard {
     pub right     : bool,
     pub a         : bool,
     pub b         : bool,
+    pub esc       : bool,
+    pub plus      : bool,
+    pub minus     : bool,
     pub mouse     : Mouse,
     character     : Option<char>,
 }
@@ -48,6 +51,9 @@ impl Keyboard {
             right     : false,
             a         : false,
             b         : false,
+            esc       : false,
+            plus      : false,
+            minus     : false,
             mouse     : Mouse::new(),
             character : None
         }
@@ -98,6 +104,9 @@ impl Keyboard {
                     Scancode::Right => self.right = key_down,
                     Scancode::Z => self.a = key_down,
                     Scancode::X => self.b = key_down,
+                    Scancode::Escape => self.esc = key_down,
+                    Scancode::Equals => self.plus = key_down,
+                    Scancode::Minus  => self.minus = key_down,
                     _ => {}
                 }
             }

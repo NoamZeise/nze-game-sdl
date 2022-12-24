@@ -1,4 +1,3 @@
-
 use sdl2::render::{TextureCreator, Texture, Canvas};
 use sdl2::image::LoadTexture;
 use sdl2::video::Window;
@@ -8,8 +7,8 @@ use std::collections::HashMap;
 use std::path::Path;
 
 use crate::resource;
-use crate::RectConversion;
-use crate::Colour;
+use crate::rect_conversion::RectConversion;
+use crate::types::Colour;
 use geometry::*;
 
 /// holds a `Texture` and some `Rect`s for representing sprites
@@ -31,6 +30,7 @@ impl TextureDraw {
         }
     }
 }
+
 
 /// stores textures that are referenced by a `resource::Texture` object
 pub struct TextureManager<'a, T> {
@@ -92,3 +92,4 @@ impl<'a, T> TextureManager<'a, T> {
         Ok(())
     }
 }
+

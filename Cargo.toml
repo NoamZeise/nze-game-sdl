@@ -9,7 +9,3 @@ edition = "2021"
 tiled = { path = "include/tiled/" }
 geometry = { path = "include/geometry/" }
 sdl-helper = { path = "include/sdl-helper"}
-
-[dependencies.sdl2]
-version = "0.35"
-features = ["ttf", "image", "mixer"]
