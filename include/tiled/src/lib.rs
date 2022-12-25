@@ -31,6 +31,7 @@ pub struct LayerData {
     pub index_draw_order: bool,
     pub parallax: Vec2,
     pub offset: Vec2,
+    pub layer_position: u32,
 } 
 
 pub type LayerTiles = Vec<u32>;
@@ -185,6 +186,9 @@ pub struct Map {
 
     pub path : String,
     pub metadata : MapMetadata,
+    // for counting what layer we are at
+    current_layer: u32,
+    
 }
 
 impl Map {
@@ -195,7 +199,7 @@ impl Map {
         };
         let mut path = path.to_owned();
         path.push('/');
-        Self::parse_xml(
+        Self::load_and_parse_xml(
             read_file_to_string(filename)?,
             &path
         )
@@ -223,7 +227,9 @@ impl Map {
                 render_order: RenderOrder::RightDown,
                 next_layer_id: 0,
                 next_object_id: 0,
-            }
+            },
+
+            current_layer: 0,
         }
     }
 
@@ -259,7 +265,7 @@ impl Map {
         Ok(())
     }
 
-    fn parse_xml(map_file_text : String, path : &str) -> Result<Map, TiledError> {
+    fn load_and_parse_xml(map_file_text : String, path : &str) -> Result<Map, TiledError> {
         let mut reader = Reader::from_str(&map_file_text);
         let mut map = Self::blank_map(path.to_string());
         parse_xml(&mut map, &mut reader)?;
@@ -270,10 +276,20 @@ impl Map {
 impl HandleXml for Map {
     fn start(&mut self, e : &BytesStart, reader: &mut Reader<&[u8]>) -> Result<(), TiledError> {
         match e.name().as_ref() {
+            
             b"map" => self.parse_map_attribs(collect_attribs(&e)?)?,
-            b"layer" => self.layers.push(Layer::new(collect_attribs(&e)?, reader)?), //add layer properly
-            b"objectgroup" => self.obj_groups.push(ObjGroup::new(collect_attribs(&e)?, reader, self.path.clone())?),
-            b"imagelayer" => self.img_layers.push(ImageLayer::new(collect_attribs(&e)?, reader)?),
+            b"layer" => {
+                self.layers.push(Layer::new(collect_attribs(&e)?, reader, self.current_layer)?);
+                self.current_layer+=1;
+            }, //add layer properly
+            b"objectgroup" => {
+                self.obj_groups.push(ObjGroup::new(collect_attribs(&e)?, reader, self.path.clone(), self.current_layer)?);
+                self.current_layer += 1;
+            },
+            b"imagelayer" => {
+                self.img_layers.push(ImageLayer::new(collect_attribs(&e)?, reader, self.current_layer)?);
+                self.current_layer += 1;
+            },
             _ => println!("unrecognized tag {:?}", e.name()),
         }
         Ok(())

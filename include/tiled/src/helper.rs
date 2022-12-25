@@ -162,6 +162,7 @@ impl LayerData {
             index_draw_order: false,
             parallax: Vec2::new(1.0, 1.0),
             offset: Vec2::new(0.0, 0.0),
+            layer_position: 0,
         }
     }
     pub fn handle_attrib(&mut self, a : &Attribute) -> Result<Option<()>, TiledError> {

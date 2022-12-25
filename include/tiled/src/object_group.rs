@@ -204,7 +204,7 @@ impl ObjGroup {
         }
         Ok(())
     }
-    pub fn new(attribs : Vec<Attribute>, reader: &mut Reader<&[u8]>, path: String) -> Result<ObjGroup, TiledError> {
+    pub fn new(attribs : Vec<Attribute>, reader: &mut Reader<&[u8]>, path: String, layer_index: u32) -> Result<ObjGroup, TiledError> {
         let mut og = ObjGroup::blank();
         og.path = path;
         og.parse_attribs(attribs)?;
@@ -231,6 +231,7 @@ impl ObjGroup {
             }
         }
         og.objs = obj_list;
+        og.info.layer_position = layer_index;
         Ok(og)
     }
 }

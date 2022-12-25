@@ -15,10 +15,11 @@ impl Layer {
             info: LayerData::new(),
         }
     }
-    pub fn new(attribs : Vec<Attribute>, reader: &mut Reader<&[u8]>) -> Result<Layer, TiledError> {
+    pub fn new(attribs : Vec<Attribute>, reader: &mut Reader<&[u8]>, layer_index: u32) -> Result<Layer, TiledError> {
         let mut layer = Layer::blank();
         layer.parse_attribs(attribs)?;
         parse_xml(&mut layer, reader)?;
+        layer.info.layer_position = layer_index;
         Ok(layer)
     }
     fn parse_attribs(&mut self, attribs : Vec<Attribute>) -> Result<(), TiledError> {

@@ -42,13 +42,18 @@ fn load_tileset(tiles: &mut Vec<Tile>, ts: &tiled::Tileset, tex: resource::Textu
     Ok(())
 }
 
+#[derive(Clone)]
 struct Layer {
     tile_draws: Vec<GameObject>,
+    image_draw: Option<GameObject>,
 }
 
 impl Layer {
-    fn new(l: &tiled::Layer, tiles: &Vec<Tile>) -> Layer {
-        let mut layer = Layer { tile_draws: Vec::new() };
+    fn blank() -> Layer {
+        Layer { tile_draws: Vec::new(), image_draw: None }
+    }
+    fn new_tile_layer(l: &tiled::Layer, tiles: &Vec<Tile>) -> Layer {
+        let mut layer = Self::blank();
         for y in 0..l.height {
             for x in 0..l.width {
                 let tile_id = l.tiles[(y * l.width + x) as usize] as usize;
@@ -77,6 +82,24 @@ impl Layer {
         }
         layer
     }
+    fn new_image_layer(l: &tiled::ImageLayer, tex: resource::Texture ) -> Layer {
+        let mut layer = Self::blank();
+        layer.image_draw = Some(
+            GameObject::new(
+                tex,
+                Rect::new(l.info.offset.x, l.info.offset.y, l.width as f64, l.height as f64),
+                Rect::new(0.0, 0.0, l.width as f64, l.height as f64),
+                l.info.parallax,
+                Colour::new(
+                    l.info.colour.r as u8,
+                    l.info.colour.g as u8,
+                    l.info.colour.b as u8,
+                    l.info.colour.a as u8
+                )
+            )
+        );
+        layer
+    }
 }
 
 /// Used for drawing [tiled] maps
@@ -94,8 +117,15 @@ impl Map {
             layers: Vec::new(),
         };
 
+        map.layers.resize(
+            map.tiled_map.layers.len() + map.tiled_map.img_layers.len() + map.tiled_map.obj_groups.len(),
+            Layer::blank()
+        );
+
         map.load_tilesets(tex_manager)?;
         map.set_map_draws();
+        map.set_img_layers(tex_manager)?;
+        map.clear_blank_layers();
         
         Ok(map)
     }
@@ -104,6 +134,10 @@ impl Map {
         for l in self.layers.iter() {
             for t in l.tile_draws.iter() {
                 cam.draw(t);
+            }
+            match l.image_draw {
+                Some(g) => cam.draw(&g),
+                None => (),
             }
         }
     }
@@ -121,7 +155,26 @@ impl Map {
 
     fn set_map_draws(&mut self) {
         for l in self.tiled_map.layers.iter() {
-            self.layers.push(Layer::new(&l, &self.tiles));
+            self.layers[l.info.layer_position as usize] = Layer::new_tile_layer(&l, &self.tiles);
+        }
+    }
+
+    fn set_img_layers<'sdl, TexType>(&mut self, tex_manager : &'sdl mut TextureManager<TexType>) -> Result<(), String> {
+        for l in self.tiled_map.img_layers.iter() {
+            self.layers[l.info.layer_position as usize] = Layer::new_image_layer(
+                l, tex_manager.load(Path::new(&(self.tiled_map.path.clone() + &l.image_path)))?
+            )
+        }
+        Ok(())
+    }
+
+    fn clear_blank_layers(&mut self) {
+        let mut i = 0;
+        while i < self.layers.len() {
+            if self.layers[i].image_draw.is_none() && self.layers[i].tile_draws.len() == 0 {
+                self.layers.remove(i);
+            }
+            i += 1;
         }
     }
 }

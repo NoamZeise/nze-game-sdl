@@ -14,10 +14,11 @@ impl ImageLayer {
             props: Properties::blank(),
         }
     }
-    pub fn new(attribs : Vec<Attribute>, reader : &mut Reader<&[u8]>) -> Result<ImageLayer, TiledError> {
+    pub fn new(attribs : Vec<Attribute>, reader : &mut Reader<&[u8]>, layer_index: u32) -> Result<ImageLayer, TiledError> {
         let mut img_layer = Self::blank();
         img_layer.parse_base_attribs(attribs)?;
         parse_xml(&mut img_layer, reader)?;
+        img_layer.info.layer_position = layer_index;
         Ok(img_layer)
     }
 
