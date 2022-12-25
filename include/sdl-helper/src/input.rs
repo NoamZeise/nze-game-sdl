@@ -1,8 +1,46 @@
 //! take sdl2 events and update a struct of bools for required controls
 
 use sdl2::event::Event;
+use sdl2::EventPump;
 use sdl2::keyboard::Scancode;
 use sdl2::mouse::MouseButton;
+
+use std::time::Instant;
+
+
+/// Holds info on input state and frame elapsed time
+/// held and updated by 'Render' at the start of each frame
+#[derive(Copy, Clone)]
+pub struct Controls {
+    pub input: KBMControls,
+    pub prev_input: KBMControls,
+    pub frame_elapsed: f64,
+    /// This value is here for convenience, it isn't used by this lib. 
+    /// You can check it in the game loop and break when true. 
+    pub should_close: bool,
+    prev_time: Instant,
+}
+
+impl Controls {
+    pub(crate) fn new() -> Controls {
+        Controls {
+            input: KBMControls::new(),
+            prev_input: KBMControls::new(),
+            frame_elapsed: 0.0,
+            prev_time: Instant::now(),
+            should_close: false,
+        }
+    }
+
+    pub(crate) fn update(&mut self, event_pump: &mut EventPump) {
+        self.prev_input = self.input;
+        for e in event_pump.poll_iter() {
+            self.input.handle_event(&e);
+        }
+        self.frame_elapsed = self.prev_time.elapsed().as_secs_f64();
+        self.prev_time = Instant::now();
+    }
+}
 
 /// Holds mouse input info
 #[derive(Copy, Clone)]
@@ -25,9 +63,9 @@ impl Mouse {
 }
 
 
-/// Holds character typed that frame, and the state of some useful buttons for typing
+/// Holds character typed that frame, and the state of some useful buttons for controls, as well as the mouse
 #[derive(Copy, Clone)]
-pub struct Keyboard {
+pub struct KBMControls {
     pub up        : bool,
     pub down      : bool,
     pub left      : bool,
@@ -41,10 +79,10 @@ pub struct Keyboard {
     character     : Option<char>,
 }
 
-impl Keyboard {
+impl KBMControls {
 
-    pub fn new() -> Self {
-        Keyboard {
+    pub(crate) fn new() -> Self {
+        KBMControls {
             up        : false,
             down      : false,
             left      : false,
@@ -69,7 +107,7 @@ impl Keyboard {
         }
     }
 
-    pub fn get_character(&mut self) -> Option<char> {
+    pub fn get_typed_character(&mut self) -> Option<char> {
         match self.character {
             Some(c) => {
                 self.character = None;

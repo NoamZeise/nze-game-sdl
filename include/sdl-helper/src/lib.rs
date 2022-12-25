@@ -18,6 +18,7 @@ pub use camera::Camera;
 pub use font_manager::{FontManager, TextDraw};
 pub use types::{Colour, GameObject};
 pub use map::Map;
+use crate::input::Controls;
 
 use geometry::*;
 
@@ -34,15 +35,13 @@ pub struct ContextSdl {
 }
 
 impl ContextSdl {
-    fn new(cam: &Camera) -> Result<(Canvas<Window>, ContextSdl), String> {
+    fn new(cam: &Camera, window_name: &str) -> Result<(Canvas<Window>, ContextSdl), String> {
         let sdl_context = sdl2::init()?;
         let _video_subsystem = sdl_context.video()?;
         let _image_context = image::init(image::InitFlag::PNG)?;
         let ttf_context = sdl2::ttf::init().map_err(|e| e.to_string())?;
         let window = _video_subsystem
-        .window(
-            "SDL2-Rust",
-            cam.get_window_size().x as u32, cam.get_window_size().y as u32)
+        .window(window_name, cam.get_window_size().x as u32, cam.get_window_size().y as u32)
         .opengl()
         .build()
         .map_err(|e| e.to_string())?;
@@ -66,10 +65,14 @@ pub struct DrawingArea {
 
 impl DrawingArea {
     ///returns the [ContextSdl] of this instance of sdl2, as well as a [DrawingArea]
-    pub fn new(cam: &Camera) -> Result<(DrawingArea,ContextSdl), String> {
-        let (mut canvas, holder) = ContextSdl::new(&cam)?;
+    ///
+    ///- 'cam_rect' the x,y part is the camera's offset the w,h is the target resolution of the drawing area
+    ///- 'window_size' the size of the OS window made, does not need to match 'cam_rect'
+    pub fn new(window_name: &str, cam_rect: Rect, window_size: Vec2) -> Result<(Camera, DrawingArea,ContextSdl), String> {
+        let cam = Camera::new(cam_rect, window_size);
+        let (mut canvas, holder) = ContextSdl::new(&cam, window_name)?;
         canvas.set_blend_mode(sdl2::render::BlendMode::Blend);
-        Ok((DrawingArea { canvas }, holder))
+        Ok((cam, DrawingArea { canvas }, holder))
     }
 }
 
@@ -78,6 +81,7 @@ impl DrawingArea {
 pub struct Render<'sdl> {
     pub texture_manager: TextureManager<'sdl, WindowContext>,
     pub font_manager: FontManager<'sdl, WindowContext>,
+    pub controls: Controls,
     event_pump: EventPump,
     drawing_area: DrawingArea,
 }
@@ -88,6 +92,7 @@ impl<'sdl> Render<'sdl> {
         Ok(Render {
             texture_manager: TextureManager::new(&context.texture_creator),
             font_manager: FontManager::new(&context.ttf_context, &context.texture_creator)?,
+            controls: Controls::new(),
             event_pump: context.sdl_context.event_pump()?,
             drawing_area,
         })
@@ -98,7 +103,9 @@ impl<'sdl> Render<'sdl> {
         self.drawing_area.canvas.clear();
     }
 
-    ///drain the draws from [Camera] and draw to [DrawingArea]
+    /// Drain the draws from [Camera] and draws to the canvas held by [DrawingArea]
+    ///
+    /// This is when the sdl drawing commands actually occur
     pub fn end_draw(&mut self, cam: &mut Camera) -> Result<(), String>{
         
         for d in cam.drain_draws() {
@@ -115,14 +122,15 @@ impl<'sdl> Render<'sdl> {
         Ok(())
     }
 
-    /// Update the input struct using the sdl events that occured between the previous call
-    pub fn event_loop(&mut self, input: &mut input::Keyboard) {
-        for event in self.event_pump.poll_iter() {
-            input.handle_event(&event);
-        }
+    /// Update the controls struct using the sdl events that occured between the previous call.
+    /// This should be called at the start of update.
+    pub fn event_loop(&mut self) {
+        self.controls.update(&mut self.event_pump);
     }
 
     /// Update the game window to the new size, and change the [Camera] to the new resolution
+    ///
+    /// Chnages the resolution of the Sdl Canvas and centeres the window
     pub fn set_win_size(&mut self, cam: &mut Camera, cs: Vec2) -> Result<(), String> {
         match self.drawing_area.canvas.window_mut().set_size(cs.x as u32, cs.y as u32) {
             Err(_) => { return Err(String::from("failed to resize window"));},
