@@ -41,7 +41,7 @@ pub struct FontManager<'a, T> {
     text_draws: Vec<Option<sdl2::render::Texture<'a>>>,
 }
 
-impl<'a, T> FontManager<'a, T> {
+impl<'a, T: 'a> FontManager<'a, T> {
     pub(crate) fn new(ttf_context : &'a ttf::Sdl2TtfContext, texture_creator : &'a TextureCreator<T>) -> Result<Self, String> {
         Ok(FontManager {
             texture_creator,
@@ -123,7 +123,7 @@ impl<'a, T> FontManager<'a, T> {
     
     fn get_text_rect(tex: &sdl2::render::Texture, pos: Vec2, height : u32) -> sdl2::rect::Rect {
         let dim  = Vec2::new(tex.query().width as f64, tex.query().height as f64);
-        let rect = get_text_rect_without_tex(dim, pos, height);
+        let rect = Self::get_text_rect_from_height(dim, pos, height);
         rect
     }
 
@@ -151,9 +151,8 @@ impl<'a, T> FontManager<'a, T> {
             None => Err("text_draw used after free".to_string()),
         }
     }
-}
 
-    fn get_text_rect_without_tex(dim: Vec2, pos: Vec2, height : u32) -> sdl2::rect::Rect {
+    pub fn get_text_rect_from_height(dim: Vec2, pos: Vec2, height : u32) -> sdl2::rect::Rect {
         let ratio = dim.y / dim.x;
         sdl2::rect::Rect::new(
                 pos.x as i32,
@@ -162,3 +161,5 @@ impl<'a, T> FontManager<'a, T> {
                 height
              )
     }
+
+}

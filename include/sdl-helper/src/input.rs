@@ -15,8 +15,9 @@ pub struct Controls {
     pub input: KBMControls,
     pub prev_input: KBMControls,
     pub frame_elapsed: f64,
-    /// This value is here for convenience, it isn't used by this lib. 
-    /// You can check it in the game loop and break when true. 
+    /// This value must be used by the user, it is set to true by the window controls,
+    /// this can also be used in your game loop to exit some other way, 
+    /// but must be checked in the game loop and broken by the user. 
     pub should_close: bool,
     prev_time: Instant,
 }
@@ -35,6 +36,19 @@ impl Controls {
     pub(crate) fn update(&mut self, event_pump: &mut EventPump) {
         self.prev_input = self.input;
         for e in event_pump.poll_iter() {
+            let win_ev = match &e {
+                sdl2::event::Event::Window {
+                    win_event:  w,
+                    ..
+                } => {
+                    Some(w)
+                }
+                _ => None,
+            };
+            match win_ev {
+                Some(w) => match w {sdl2::event::WindowEvent::Close => { self.should_close = true; }, _ => ()},
+                _ => ()
+            }
             self.input.handle_event(&e);
         }
         self.frame_elapsed = self.prev_time.elapsed().as_secs_f64();

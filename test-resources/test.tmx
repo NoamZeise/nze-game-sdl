@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.8" tiledversion="1.8.2" orientation="orthogonal" renderorder="right-down" width="4" height="4" tilewidth="10" tileheight="10" infinite="0" nextlayerid="8" nextobjectid="19">
+<map version="1.9" tiledversion="1.9.1" orientation="orthogonal" renderorder="right-down" width="4" height="4" tilewidth="10" tileheight="10" infinite="0" nextlayerid="8" nextobjectid="19">
  <tileset firstgid="1" source="test.tsx"/>
  <layer id="2" name="bg" width="4" height="4">
   <data encoding="csv">
@@ -9,7 +9,7 @@
 4,4,0,0
 </data>
  </layer>
- <layer id="1" name="Tile Layer 1" width="4" height="4" opacity="0.9" tintcolor="#64aa0000" offsetx="0.8" offsety="0" parallaxy="2.5">
+ <layer id="1" name="Tile Layer 1" width="4" height="4" tintcolor="#64aa0000" offsetx="0.8" offsety="0" parallaxy="2.5">
   <properties>
    <property name="collidable" type="bool" value="true"/>
   </properties>
@@ -38,13 +38,13 @@
    </properties>
    <polygon points="0,0 0.940409,-7.20981 9.90565,-1.56735"/>
   </object>
-  <object id="16" name="dd" type="dd" x="34.5625" y="16.6875">
+  <object id="16" name="dd" class="dd" x="34.5625" y="16.6875">
    <point/>
   </object>
-  <object id="17" name="dd" type="asd" x="29.375" y="19.3125" width="8.5625" height="9" rotation="10">
+  <object id="17" name="dd" class="asd" x="29.375" y="19.3125" width="8.5625" height="9" rotation="10">
    <ellipse/>
   </object>
-  <object id="18" x="-4.125" y="14.1875" width="83" height="19">
+  <object id="18" x="-0.440402" y="-24.4773" width="191.491" height="87.9839">
    <text fontfamily="MS Sans Serif" pixelsize="29" wrap="1" color="#626262" bold="1" italic="1" halign="justify" valign="center">Hello World</text>
   </object>
  </objectgroup>
