@@ -15,8 +15,8 @@ mod rect_conversion;
 
 pub use texture_manager::TextureManager;
 pub use camera::Camera;
-pub use font_manager::{FontManager, TextDraw};
-pub use types::{Colour, GameObject};
+pub use font_manager::FontManager;
+pub use types::{Colour, GameObject, TextObject};
 pub use map::Map;
 use crate::input::Controls;
 
@@ -111,12 +111,16 @@ impl<'sdl> Render<'sdl> {
         for d in cam.drain_draws() {
             self.texture_manager.draw(&mut self.drawing_area.canvas, d)?;
         }
-        for d in cam.drain_tex_draws() {
+        for d in cam.drain_text_draws() {
+            self.font_manager.draw_text_draw(&mut self.drawing_area.canvas, d)?;
+        }
+        for d in cam.drain_temp_text_draws() {
             self.font_manager.draw_disposable(&mut self.drawing_area.canvas, d)?;
         }
         for d in cam.drain_rect_draws() {
             self.texture_manager.draw_rect(&mut self.drawing_area.canvas, &d.0, d.1)?;
         }
+        
       
         self.drawing_area.canvas.present();
         Ok(())

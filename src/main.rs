@@ -14,7 +14,7 @@ pub fn main() -> Result<(), String> {
    
     let mono_font = render.font_manager.load_font(Path::new("textures/FiraCode-Light.ttf"))?;
 
-    let map = Map::new("test-resources/test.tmx", &mut render.texture_manager)?;
+    let map = Map::new("test-resources/test.tmx", &mut render.texture_manager, &mut render.font_manager)?;
 
     loop {
         update(&mut render, &mut cam)?;
@@ -22,7 +22,7 @@ pub fn main() -> Result<(), String> {
         render.start_draw();
         
         map.draw(&mut cam);
-        cam.draw_text(&mono_font, "Hello SDL!".to_string(), 40, Vec2::new(10.0, 40.0), Colour::white(), Vec2::new(1.0, 1.0));
+        cam.draw_disposable_text(&mono_font, "Hello SDL!".to_string(), 40, Vec2::new(10.0, 40.0), Colour::white(), Vec2::new(1.0, 1.0));
         
         render.end_draw(&mut cam)?;
 

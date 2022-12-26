@@ -6,11 +6,12 @@ use sdl2::ttf;
 use std::collections::HashMap;
 use std::path::Path;
 
-use geometry::Vec2;
+use geometry::*;
+use crate::rect_conversion::RectConversion;
 use crate::{resource, Colour};
+use resource::Text;
 
-/// can be returned by [FontManager], stores an sdl2 texture and a rect for drawing to a canvas
-pub struct TextDraw<'a> {
+struct ResourceTextDraw<'a> {
     tex  : sdl2::render::Texture<'a>,
     rect : sdl2::rect::Rect,
 }
@@ -23,14 +24,21 @@ pub struct DisposableTextDraw {
     pub colour : Colour, 
 }
 
+pub struct TextDraw {
+    pub text: Text,
+    pub rect: Rect,
+    pub colour: Colour,
+}
+
 const FONT_LOAD_SIZE : u16 = 128;
 
-/// Stores 'sdl2::ttf::Font' and returns textures or draws them
+/// Stores 'sdl2::ttf::Font's and returns resources that represent loaded resources to fonts or text textures
 pub struct FontManager<'a, T> {
     texture_creator : &'a TextureCreator<T>,
     ttf_context: &'a ttf::Sdl2TtfContext,
     loaded_font_paths : HashMap<String, usize>,
     pub fonts : Vec<ttf::Font<'a, 'static>>,
+    text_draws: Vec<Option<sdl2::render::Texture<'a>>>,
 }
 
 impl<'a, T> FontManager<'a, T> {
@@ -40,6 +48,7 @@ impl<'a, T> FontManager<'a, T> {
             ttf_context,
             loaded_font_paths: HashMap::new(),
             fonts : Vec::new(),
+            text_draws: Vec::new(),
         })
     }
 
@@ -63,35 +72,59 @@ impl<'a, T> FontManager<'a, T> {
             id: font_index,
         })
     }
-    /// return a `TextDraw` that has a corrected `rect.width` based on the supplied height and the rendered font
-    pub fn get_draw(&self, font: &resource::Font, text: &str, height : u32, colour : Color) -> Result<TextDraw, String> {
+    /// return a [resource::Text] that can be put into a [TextObject] to be passed to [Camera]
+    pub fn get_text(&mut self, font: &resource::Font, text: &str, colour : Color) -> Result<Text, String>    {
+        let t = Self::get_sdl2_texture(text, colour, &self.fonts[font.id], self.texture_creator)?;
+        let width = t.query().width;
+        let height = t.query().height;
+        for (i, e) in self.text_draws.iter_mut().enumerate() {
+            if e.is_none() {
+                *e = Some(t);
+                return Ok(Text{id: i, width, height});
+            }
+        }
+        self.text_draws.push(Some(t));
+        Ok(Text { id: self.text_draws.len() - 1, width, height})
+    }
+
+    /// frees the texture stored and associated with the [TextDraw].
+    /// The [TextDraw] must not be used after freeing
+    pub fn unload_text_draw(&mut self, text_draw: Text) {
+        self.text_draws[text_draw.id] = None;
+    }
+    
+    fn get_draw(&self, font: &resource::Font, text: &str, height : u32, colour : Color) -> Result<ResourceTextDraw, String> {
         self.get_draw_at_vec2(font, text, height, Vec2::new(0.0, 0.0), colour)
     }
 
-    pub fn get_draw_at_vec2(&self, font: &resource::Font, text: &str, height : u32, pos: Vec2, colour: Color) -> Result<TextDraw, String> {
+    fn get_draw_at_vec2(&self, font: &resource::Font, text: &str, height : u32, pos: Vec2, colour: Color) -> Result<ResourceTextDraw, String> {
         if text.len() == 0 { Err("text length should be greater than 0")?; }
-        let surface = match self.fonts[font.id]
+        let tex = Self::get_sdl2_texture(text, colour, &self.fonts[font.id], self.texture_creator)?;
+        Ok(
+            ResourceTextDraw {
+                rect : Self::get_text_rect(&tex, pos, height),
+                tex,
+            }
+        )
+    }
+
+    fn get_sdl2_texture(text: &str, colour : Color, font: &ttf::Font<'a, 'static>, texture_creator : &'a TextureCreator<T>) -> Result<sdl2::render::Texture<'a>, String> {
+        let surface = match font
             .render(text)
             .blended(colour) {
                 Ok(s) => s,
                 Err(e) => return Err(e.to_string()),
-        };
-        let tex = match self.texture_creator.create_texture_from_surface(&surface) {
-            Ok(t) => t,
+            };
+        match texture_creator.create_texture_from_surface(&surface) {
+            Ok(t) => Ok(t),
             Err(e) => { return Err(e.to_string()); },
-        };
-        let ratio = tex.query().height as f64 / tex.query().width as f64;
-        Ok(
-        TextDraw {
-            tex,
-            rect:
-             sdl2::rect::Rect::new(
-                pos.x as i32,
-                pos.y as i32,
-                (height as f64 / ratio) as u32,
-                height
-             ),
-        })
+        }
+    }
+    
+    fn get_text_rect(tex: &sdl2::render::Texture, pos: Vec2, height : u32) -> sdl2::rect::Rect {
+        let dim  = Vec2::new(tex.query().width as f64, tex.query().height as f64);
+        let rect = get_text_rect_without_tex(dim, pos, height);
+        rect
     }
 
     /// draws the supplied text to the canvas in the supplied font at the given height and position
@@ -107,4 +140,25 @@ impl<'a, T> FontManager<'a, T> {
         self.draw(canvas, &disposable.font, &disposable.text, disposable.height, disposable.pos, disposable.colour.to_sdl2_colour())?;
         Ok(())
     }
+
+    pub(crate) fn draw_text_draw(&mut self, canvas : &mut Canvas<Window>, text_draw: TextDraw) -> Result<(), String> {
+        match &mut self.text_draws[text_draw.text.id] {
+            Some(t) => {
+                t.set_color_mod(text_draw.colour.r, text_draw.colour.g, text_draw.colour.b);
+                t.set_alpha_mod(text_draw.colour.a);
+                canvas.copy(&t, None, text_draw.rect.to_sdl_rect())
+            },
+            None => Err("text_draw used after free".to_string()),
+        }
+    }
 }
+
+    fn get_text_rect_without_tex(dim: Vec2, pos: Vec2, height : u32) -> sdl2::rect::Rect {
+        let ratio = dim.y / dim.x;
+        sdl2::rect::Rect::new(
+                pos.x as i32,
+                pos.y as i32,
+                (height as f64 / ratio) as u32,
+                height
+             )
+    }

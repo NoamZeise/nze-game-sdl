@@ -1,5 +1,5 @@
 use geometry::*;
-use crate::{texture_manager::TextureDraw, font_manager::DisposableTextDraw, types::GameObject, Colour, resource};
+use crate::{texture_manager::TextureDraw, font_manager::{DisposableTextDraw, TextDraw}, types::GameObject, Colour, resource, types::TextObject};
 use std::vec::Drain;
 
 /// holds buffered draw commands that render will consume at the end of each frame
@@ -14,6 +14,7 @@ pub struct Camera {
     draws : Vec<TextureDraw>,
     rect_draws: Vec<(Rect, Colour)>,
     temp_text_draws: Vec<DisposableTextDraw>,
+    perm_text_draws: Vec<TextDraw>,
 }
 
 impl Camera {
@@ -23,6 +24,7 @@ impl Camera {
             window_size,
             draws: Vec::new(),
             temp_text_draws: Vec::new(),
+            perm_text_draws: Vec::new(),
             rect_draws: Vec::new(),
             size_ratio: Vec2::new(0.0, 0.0),
         };
@@ -34,8 +36,12 @@ impl Camera {
         self.draws.drain(..)
     }
 
-    pub(crate) fn drain_tex_draws(&mut self) -> Drain<DisposableTextDraw> { 
+    pub(crate) fn drain_temp_text_draws(&mut self) -> Drain<DisposableTextDraw> { 
         self.temp_text_draws.drain(..)
+    }
+
+    pub(crate) fn drain_text_draws(&mut self) -> Drain<TextDraw> {
+        self.perm_text_draws.drain(..)
     }
 
     pub(crate) fn drain_rect_draws(&mut self) -> Drain<(Rect, Colour)> {
@@ -55,7 +61,7 @@ impl Camera {
     }
 
     /// Draws text adjusted for the camera's position and scale
-    pub fn draw_text(&mut self, font: &resource::Font, text: String, height: u32, pos: Vec2, colour: Colour, parallax: Vec2) {
+    pub fn draw_disposable_text(&mut self, font: &resource::Font, text: String, height: u32, pos: Vec2, colour: Colour, parallax: Vec2) {
         let rect = self.rect_to_cam_space(Rect::new(pos.x, pos.y, height as f64, height as f64), parallax);
         self.temp_text_draws.push(DisposableTextDraw {
             font: *font,
@@ -63,6 +69,15 @@ impl Camera {
             height: rect.h as u32,
             pos: rect.top_left(),
             colour,
+        })
+    }
+
+    pub fn draw_text(&mut self, text_obj: TextObject) {
+        let rect = self.rect_to_cam_space(text_obj.rect, text_obj.parallax);
+        self.perm_text_draws.push(TextDraw {
+            text: text_obj.texture,
+            rect,
+            colour: text_obj.colour,
         })
     }
 

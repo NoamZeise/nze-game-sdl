@@ -73,3 +73,11 @@ impl GameObject {
     }
 }
 
+
+#[derive(Clone, Copy)]
+pub struct TextObject {
+    pub(crate) texture: resource::Text,
+    pub rect: Rect,
+    pub parallax: Vec2,
+    pub colour: Colour,
+}

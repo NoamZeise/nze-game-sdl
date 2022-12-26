@@ -28,7 +28,6 @@ impl TextureDraw {
     }
 }
 
-
 /// stores textures that are referenced by a [resource::Texture] object
 pub struct TextureManager<'a, T> {
     texture_creator : &'a TextureCreator<T>,
