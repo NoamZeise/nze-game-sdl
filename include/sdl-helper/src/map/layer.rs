@@ -1,4 +1,5 @@
-use crate::{GameObject, TextObject, Colour, resource::{self, Text}, FontManager};
+use std::path::Path;
+use crate::{GameObject, TextObject, Colour, resource, FontManager, Camera};
 use super::tile::*;
 use geometry::*;
 
@@ -64,9 +65,48 @@ impl Layer {
     }
 
     pub fn new_object_layer<'sdl, TexType>(l: &tiled::ObjGroup, font_manager : &'sdl mut FontManager<TexType>) -> Result<Layer, String> {
+        let mut layer = Layer::blank();
+        let layer_colour = Colour::new(
+            l.info.colour.r as u8,
+            l.info.colour.g as u8,
+            l.info.colour.b as u8,
+            l.info.colour.a as u8
+            );
+        for t in l.text.iter() {
+            let font = font_manager.load_font(Path::new(&("textures/fonts/".to_string() + &t.font_family.replace(" ", "-") + ".ttf")))?;
+            let text = font_manager.get_text(&font, &t.text,
+                                             Colour::new(
+                                                 t.colour.r as u8,
+                                                 t.colour.g as u8,
+                                                 t.colour.b as u8,
+                                                 t.colour.a as u8
+                                             )
+            )?;
+            layer.text_draw.push(
+                TextObject::new(text,
+                                crate::get_text_rect_from_height(
+                                    Vec2::new(text.width as f64,
+                                              text.height as f64),
+                                    t.obj.rect.top_left(),
+                                    t.obj.rect.h),
+                                l.info.parallax,
+                                layer_colour
+            ));
+            }
+        Ok(layer)
+    }
 
-       
-        Ok(Layer::blank())
+    pub fn draw(&self, cam: &mut Camera) {
+        for t in self.tile_draws.iter() {
+            cam.draw(t);
+        }
+        match self.image_draw {
+            Some(g) => cam.draw(&g),
+            None => (),
+        }
+        for t in self.text_draw.iter() {
+            cam.draw_text(t);
+        }
     }
 
     pub fn is_blank(&self) -> bool {

@@ -44,8 +44,8 @@
   <object id="17" name="dd" class="asd" x="29.375" y="19.3125" width="8.5625" height="9" rotation="10">
    <ellipse/>
   </object>
-  <object id="18" x="-0.440402" y="-24.4773" width="191.491" height="87.9839">
-   <text fontfamily="MS Sans Serif" pixelsize="29" wrap="1" color="#626262" bold="1" italic="1" halign="justify" valign="center">Hello World</text>
+  <object id="18" x="3.0395" y="9.2982" width="191.491" height="26.1645">
+   <text fontfamily="Roboto Medium" pixelsize="29" wrap="1" color="#626262" halign="justify" valign="center">Hello World</text>
   </object>
  </objectgroup>
  <imagelayer id="4" name="img" offsetx="19.247" offsety="-10.3445" parallaxx="2.07" repeaty="1">

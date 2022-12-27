@@ -4,7 +4,6 @@ use tiled;
 use crate::Camera;
 use crate::FontManager;
 use crate::TextureManager;
-use crate::font_manager;
 
 mod tile;
 mod layer;
@@ -45,13 +44,7 @@ impl Map {
 
     pub fn draw(&self, cam: &mut Camera) {
         for l in self.layers.iter() {
-            for t in l.tile_draws.iter() {
-                cam.draw(t);
-            }
-            match l.image_draw {
-                Some(g) => cam.draw(&g),
-                None => (),
-            }
+            l.draw(cam);
         }
     }
 

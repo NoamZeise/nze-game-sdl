@@ -72,7 +72,7 @@ impl Camera {
         })
     }
 
-    pub fn draw_text(&mut self, text_obj: TextObject) {
+    pub fn draw_text(&mut self, text_obj: &TextObject) {
         let rect = self.rect_to_cam_space(text_obj.rect, text_obj.parallax);
         self.perm_text_draws.push(TextDraw {
             text: text_obj.texture,
