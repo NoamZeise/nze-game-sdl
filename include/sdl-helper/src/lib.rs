@@ -107,7 +107,7 @@ impl<'sdl> Render<'sdl> {
     /// Drain the draws from [Camera] and draws to the canvas held by [DrawingArea]
     ///
     /// This is when the sdl drawing commands actually occur
-    pub fn end_draw(&mut self, cam: &mut Camera) -> Result<(), String>{
+    pub fn end_draw(&mut self, cam: &mut Camera) -> Result<(), Error>{
         
         for d in cam.drain_draws() {
             self.texture_manager.draw(&mut self.drawing_area.canvas, d)?;
@@ -136,9 +136,9 @@ impl<'sdl> Render<'sdl> {
     /// Update the game window to the new size, and change the [Camera] to the new resolution
     ///
     /// Chnages the resolution of the Sdl Canvas and centeres the window
-    pub fn set_win_size(&mut self, cam: &mut Camera, cs: Vec2) -> Result<(), String> {
+    pub fn set_win_size(&mut self, cam: &mut Camera, cs: Vec2) -> Result<(), Error> {
         match self.drawing_area.canvas.window_mut().set_size(cs.x as u32, cs.y as u32) {
-            Err(_) => { return Err(String::from("failed to resize window"));},
+            Err(_) => { return Err(Error::Sdl2ChangeState(String::from("failed to resize window")));},
             _ => ()
         }
         cam.set_window_size(cs);

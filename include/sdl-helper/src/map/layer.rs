@@ -1,5 +1,5 @@
 use std::path::Path;
-use crate::{GameObject, TextObject, Colour, resource, FontManager, Camera};
+use crate::{GameObject, TextObject, Colour, resource, FontManager, Camera, Error};
 use super::tile::*;
 use geometry::*;
 
@@ -64,7 +64,7 @@ impl Layer {
         layer
     }
 
-    pub fn new_object_layer<'sdl, TexType>(l: &tiled::ObjGroup, font_manager : &'sdl mut FontManager<TexType>) -> Result<Layer, String> {
+    pub fn new_object_layer<'sdl, TexType>(l: &tiled::ObjGroup, font_manager : &'sdl mut FontManager<TexType>) -> Result<Layer, Error> {
         let mut layer = Layer::blank();
         let layer_colour = Colour::new(
             l.info.colour.r as u8,

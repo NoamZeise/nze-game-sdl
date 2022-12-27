@@ -8,7 +8,7 @@ use std::path::Path;
 
 use geometry::*;
 use crate::rect_conversion::RectConversion;
-use crate::{resource, Colour};
+use crate::{resource, Colour, file_err, Error, font_err, draw_err};
 use resource::Text;
 
 struct ResourceTextDraw<'a> {
@@ -52,17 +52,12 @@ impl<'a, T: 'a> FontManager<'a, T> {
         }
     }
 
-    pub fn load_font(&mut self, path : &Path) -> Result<resource::Font, String>{
+    pub fn load_font(&mut self, path : &Path) -> Result<resource::Font, Error>{
         let path_string = path.to_string_lossy().to_string();
         let font_index = match self.loaded_font_paths.contains_key(&path_string) {
             true => self.loaded_font_paths[&path_string],
             false => {
-                self.fonts.push(
-                    match self.ttf_context.load_font(path, FONT_LOAD_SIZE) {
-                        Ok(s) => s,
-                        Err(e) => { return Err(e.to_string()); }
-                    }
-                );
+                self.fonts.push(file_err!(self.ttf_context.load_font(path, FONT_LOAD_SIZE))?);
                 println!("loaded font: {}", path.to_str().unwrap());
                 self.loaded_font_paths.insert(path_string, self.fonts.len() - 1);
                 self.fonts.len() - 1
@@ -74,7 +69,7 @@ impl<'a, T: 'a> FontManager<'a, T> {
         })
     }
     /// return a [resource::Text] that can be put into a [TextObject] to be passed to [Camera]
-    pub fn get_text(&mut self, font: &resource::Font, text: &str, colour : Colour) -> Result<Text, String>    {
+    pub fn get_text(&mut self, font: &resource::Font, text: &str, colour : Colour) -> Result<Text, Error>    {
         let t = Self::get_sdl2_texture(text, colour.to_sdl2_colour(), &self.fonts[font.id], self.texture_creator)?;
         let width = t.query().width;
         let height = t.query().height;
@@ -94,12 +89,12 @@ impl<'a, T: 'a> FontManager<'a, T> {
         self.text_draws[text_draw.id] = None;
     }
     
-    fn get_draw(&self, font: &resource::Font, text: &str, height : u32, colour : Color) -> Result<ResourceTextDraw, String> {
+    fn get_draw(&self, font: &resource::Font, text: &str, height : u32, colour : Color) -> Result<ResourceTextDraw, Error> {
         self.get_draw_at_vec2(font, text, height, Vec2::new(0.0, 0.0), colour)
     }
 
-    fn get_draw_at_vec2(&self, font: &resource::Font, text: &str, height : u32, pos: Vec2, colour: Color) -> Result<ResourceTextDraw, String> {
-        if text.len() == 0 { Err("text length should be greater than 0")?; }
+    fn get_draw_at_vec2(&self, font: &resource::Font, text: &str, height : u32, pos: Vec2, colour: Color) -> Result<ResourceTextDraw, Error> {
+        if text.len() == 0 { return Err(Error::TextRender("text length should be greater than 0".to_string())); }
         let tex = Self::get_sdl2_texture(text, colour, &self.fonts[font.id], self.texture_creator)?;
         Ok(
             ResourceTextDraw {
@@ -109,17 +104,11 @@ impl<'a, T: 'a> FontManager<'a, T> {
         )
     }
 
-    fn get_sdl2_texture(text: &str, colour : Color, font: &ttf::Font<'a, 'static>, texture_creator : &'a TextureCreator<T>) -> Result<sdl2::render::Texture<'a>, String> {
-        let surface = match font
+    fn get_sdl2_texture(text: &str, colour : Color, font: &ttf::Font<'a, 'static>, texture_creator : &'a TextureCreator<T>) -> Result<sdl2::render::Texture<'a>, Error> {
+        let surface = font_err!(font
             .render(text)
-            .blended(colour) {
-                Ok(s) => s,
-                Err(e) => return Err(e.to_string()),
-            };
-        match texture_creator.create_texture_from_surface(&surface) {
-            Ok(t) => Ok(t),
-            Err(e) => { return Err(e.to_string()); },
-        }
+            .blended(colour))?;
+        Ok(font_err!(texture_creator.create_texture_from_surface(&surface))?)
     }
     
     fn get_text_rect(tex: &sdl2::render::Texture, pos: Vec2, height : u32) -> sdl2::rect::Rect {
@@ -129,39 +118,38 @@ impl<'a, T: 'a> FontManager<'a, T> {
     }
 
     /// draws the supplied text to the canvas in the supplied font at the given height and position
-    pub(crate) fn draw(&self, canvas : &mut Canvas<Window>, font : &resource::Font, text: &str, height : u32, pos : Vec2, colour : Color) -> Result<(), String> {
+    pub(crate) fn draw(&self, canvas : &mut Canvas<Window>, font : &resource::Font, text: &str, height : u32, pos : Vec2, colour : Color) -> Result<(), Error> {
         if text.len() == 0 { return Ok(()); }
         let mut tex_draw = self.get_draw(font, text, height, colour)?;
         tex_draw.rect.x = pos.x as i32;
         tex_draw.rect.y = pos.y as i32;
-        canvas.copy(&tex_draw.tex, None, tex_draw.rect)
+        Ok(draw_err!(canvas.copy(&tex_draw.tex, None, tex_draw.rect))?)
     }
 
-    pub(crate) fn draw_disposable(&self, canvas: &mut Canvas<Window>, disposable: DisposableTextDraw) -> Result<(), String> {
-        self.draw(canvas, &disposable.font, &disposable.text, disposable.height, disposable.pos, disposable.colour.to_sdl2_colour())?;
-        Ok(())
+    pub(crate) fn draw_disposable(&self, canvas: &mut Canvas<Window>, disposable: DisposableTextDraw) -> Result<(), Error> {
+        self.draw(canvas, &disposable.font, &disposable.text, disposable.height, disposable.pos, disposable.colour.to_sdl2_colour())
     }
 
-    pub(crate) fn draw_text_draw(&mut self, canvas : &mut Canvas<Window>, text_draw: TextDraw) -> Result<(), String> {
+    pub(crate) fn draw_text_draw(&mut self, canvas : &mut Canvas<Window>, text_draw: TextDraw) -> Result<(), Error> {
         match &mut self.text_draws[text_draw.text.id] {
             Some(t) => {
                 t.set_color_mod(text_draw.colour.r, text_draw.colour.g, text_draw.colour.b);
                 t.set_alpha_mod(text_draw.colour.a);
-                canvas.copy(&t, None, text_draw.rect.to_sdl_rect())
+                Ok(draw_err!(canvas.copy(&t, None, text_draw.rect.to_sdl_rect()))?)
             },
-            None => Err("text_draw used after free".to_string()),
+            None => Err(Error::MissingResource("text_draw used after free".to_string())),
         }
     }
 
 }
 
 
-    pub fn get_text_rect_from_height(dim: Vec2, pos: Vec2, height : f64) -> Rect {
-        let ratio = dim.y / dim.x;
-        Rect::new(
-                pos.x,
-                pos.y,
-                height / ratio,
-                height
-             )
-    }
+pub fn get_text_rect_from_height(dim: Vec2, pos: Vec2, height : f64) -> Rect {
+    let ratio = dim.y / dim.x;
+    Rect::new(
+        pos.x,
+        pos.y,
+        height / ratio,
+        height
+    )
+}

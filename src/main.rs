@@ -1,16 +1,16 @@
-use sdl_helper::{Map, Camera, Colour, Render, DrawingArea, TextObject};
+use sdl_helper::{Map, Camera, Colour, Render, DrawingArea, TextObject, error::Error};
 use geometry::*;
 
 use std::path::Path;
 
-pub fn main() -> Result<(), String> {
+pub fn main() -> Result<(), Error> {
     
     let (mut cam, drawing_area, context) = DrawingArea::new(
         "Game Template",
         geometry::Rect::new(0.0, 0.0, 240.0, 160.0),
         geometry::Vec2::new(240.0, 160.0)
     ).unwrap();
-    let mut render = Render::new(drawing_area, &context).unwrap();
+    let mut render = Render::new(drawing_area, &context)?;
    
     let mono_font = render.font_manager.load_font(Path::new("textures/fonts/FiraCode-Light.ttf"))?;
 
@@ -40,7 +40,7 @@ pub fn main() -> Result<(), String> {
 }
 
 
-fn update(render: &mut Render, cam: &mut Camera) -> Result<(), String> {
+fn update(render: &mut Render, cam: &mut Camera) -> Result<(), Error> {
     render.event_loop();
     let input = render.controls.input;
     let prev_frame = render.controls.frame_elapsed;

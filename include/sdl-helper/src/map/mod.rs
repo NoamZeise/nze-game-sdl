@@ -4,6 +4,7 @@ use tiled;
 use crate::Camera;
 use crate::FontManager;
 use crate::TextureManager;
+use crate::Error;
 
 mod tile;
 mod layer;
@@ -20,7 +21,7 @@ pub struct Map {
 }
 
 impl Map {
-    pub fn new<'sdl, TexType>(filename: &str, tex_manager : &'sdl mut TextureManager<TexType>, font_manager: &'sdl mut FontManager<TexType>) -> Result<Self, String> {
+    pub fn new<'sdl, TexType>(filename: &str, tex_manager : &'sdl mut TextureManager<TexType>, font_manager: &'sdl mut FontManager<TexType>) -> Result<Self, Error> {
         let mut map = Self {
             tiled_map: tiled::Map::new(filename).unwrap(),
             tiles: Vec::new(),
@@ -48,7 +49,7 @@ impl Map {
         }
     }
 
-    fn load_tilesets<'sdl, TexType>(&mut self, tex_manager : &'sdl mut TextureManager<TexType>) -> Result<(), String> {
+    fn load_tilesets<'sdl, TexType>(&mut self, tex_manager : &'sdl mut TextureManager<TexType>) -> Result<(), Error> {
         self.tiles.resize(self.tiled_map.total_tiles as usize, Tile::new());
         // blank tile
         self.tiles[0].rect.w = self.tiled_map.tile_width as f64;
@@ -65,7 +66,7 @@ impl Map {
         }
     }
 
-    fn set_img_layers<'sdl, TexType>(&mut self, tex_manager : &'sdl mut TextureManager<TexType>) -> Result<(), String> {
+    fn set_img_layers<'sdl, TexType>(&mut self, tex_manager : &'sdl mut TextureManager<TexType>) -> Result<(), Error> {
         for l in self.tiled_map.img_layers.iter() {
             self.layers[l.info.layer_position as usize] = Layer::new_image_layer(
                 l, tex_manager.load(Path::new(&(self.tiled_map.path.clone() + &l.image_path)))?
@@ -74,7 +75,7 @@ impl Map {
         Ok(())
     }
 
-    fn set_obj_group_layers<'sdl, TexType>(&mut self, font_manager : &'sdl mut FontManager<TexType>) -> Result<(), String> {
+    fn set_obj_group_layers<'sdl, TexType>(&mut self, font_manager : &'sdl mut FontManager<TexType>) -> Result<(), Error> {
         for l in self.tiled_map.obj_groups.iter() {
             self.layers[l.info.layer_position as usize] = Layer::new_object_layer(
                 l,
