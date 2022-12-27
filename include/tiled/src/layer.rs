@@ -1,9 +1,36 @@
-use super::LayerTiles;
-use super::{Layer, Properties, error::TiledError, helper::*, LayerData};
+use super::{Properties, error::TiledError, helper::*, Colour};
+use geometry::*;
 
 use quick_xml::reader::Reader;
 use quick_xml::events::{BytesStart, BytesText};
 use quick_xml::events::attributes::Attribute;
+
+
+
+pub struct LayerData {
+    pub id: u32,
+    pub name: String,
+    pub visible: bool,
+    pub locked: bool,
+    pub opacity: f64,
+    pub colour : Colour,
+    pub tint : Colour,
+    pub index_draw_order: bool,
+    pub parallax: Vec2,
+    pub offset: Vec2,
+    pub layer_position: u32,
+} 
+
+pub type LayerTiles = Vec<u32>;
+
+pub struct Layer {
+    pub props : Properties,
+    pub tiles : LayerTiles,
+    pub width : i32,
+    pub height: i32,
+    pub info: LayerData,
+}
+
 
 impl Layer {
     fn blank() -> Layer {

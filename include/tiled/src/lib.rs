@@ -1,9 +1,9 @@
-use std::collections::HashMap;
-use geometry::{Rect, Vec2};
+//! A library for loading maps and tilesets made with the Tiled map editor
+//! 
+//! Loads the map using a path, and also automatically loads any tilesets.
+//! Note: infinite maps and templates are unsupported
 
-use quick_xml::events::attributes::Attribute;
-use quick_xml::events::BytesStart;
-use quick_xml::reader::Reader;
+pub mod error;
 
 mod tileset;
 mod layer;
@@ -11,304 +11,23 @@ mod object_group;
 mod properties;
 mod image_layer;
 mod helper;
+mod map;
+
+pub use properties::Properties;
+pub use layer::{Layer, LayerData, LayerTiles};
+pub use object_group::*;
+pub use tileset::Tileset;
+pub use image_layer::ImageLayer;
+pub use map::*;
+
 use helper::*;
-pub mod error;
 use error::TiledError;
 
-pub struct Properties {
-    pub booleans : HashMap<String, bool>,
-    pub integers : HashMap<String, i64>,
-}
-
-pub struct LayerData {
-    pub id: u32,
-    pub name: String,
-    pub visible: bool,
-    pub locked: bool,
-    pub opacity: f64,
-    pub colour : Colour,
-    pub tint : Colour,
-    pub index_draw_order: bool,
-    pub parallax: Vec2,
-    pub offset: Vec2,
-    pub layer_position: u32,
-} 
-
-pub type LayerTiles = Vec<u32>;
-
-pub struct Layer {
-    pub props : Properties,
-    pub tiles : LayerTiles,
-    pub width : i32,
-    pub height: i32,
-    pub info: LayerData,
-}
-
-pub struct ObjData {
-    pub id: u32,
-    pub name: String,
-    pub type_name: String,
-    pub visible: bool,
-}
-
-pub struct Obj {
-    pub props : Properties,
-    pub rect : Rect,
-    pub rotation: f64,
-    pub info: ObjData,
-    poly : Option<Box<Poly>>,
-    text : Option<Box<Text>>,
-    point: bool,
-    ellipse: bool,
-    pub template: Option<String>,
-}
-
-pub struct Poly {
-    pub points : Vec<Vec2>,
-    pub obj : Obj,
-    pub closed : bool,
-}
-
-type Point = Obj;
-type Ellipse = Obj;
-
-#[derive(Eq, PartialEq)]
-pub enum TextHorizontalAlign {
-    Left,
-    Center,
-    Right,
-    Justify
-}
-
-#[derive(Eq, PartialEq)]
-pub enum TextVerticalAlign {
-    Top,
-    Center,
-    Bottom
-}
-
-pub struct Text {
-    pub obj: Obj,
-    pub text: String,
-    pub font_family: String,
-    pub pixel_size: u32,
-    pub wrap: bool,
-    pub bold: bool,
-    pub italic: bool,
-    pub horizontal_align : TextHorizontalAlign,
-    pub vertical_align : TextVerticalAlign,
-    pub colour: Colour,
-}
-
-pub struct ObjGroup {
-    pub props : Properties,
-    pub objs  : Vec<Obj>,
-    pub polys : Vec<Poly>,
-    pub points: Vec<Point>,
-    pub ellipse: Vec<Ellipse>,
-    pub text: Vec<Text>,
-    pub info: LayerData,
-    path: String,
-}
-
-pub struct ImageLayer {
-    pub image_path : String,
-    pub width: u32,
-    pub height: u32,
-    pub repeat_x: bool,
-    pub repeat_y: bool,
-    pub info: LayerData,
-    pub props: Properties,
-}
-
 pub struct Colour {
-    pub r : u32,
-    pub g : u32,
-    pub b : u32,
-    pub a : u32,
-}
-
-pub struct Tileset {
-    pub first_tile_id : u32,
-    pub name : String,
-    pub tile_width : u32,
-    pub tile_height : u32,
-    pub tile_count : u32,
-    pub column_count : u32,
-
-    pub margin : u32,
-    pub spacing : u32,
-
-    pub image_path : String,
-    pub image_width : u32,
-    pub image_height : u32,
-
-    pub version : String,
-    pub tiledversion : String,
-}
-
-pub enum Orientation {
-    Orthogonal,
-    Isometric,
-    IsometricStaggered,
-    HexagonalStaggered,
-}
-
-pub enum RenderOrder {
-    RightDown,
-    RightUp,
-    LeftDown,
-    LeftUp,
-}
-
-pub struct MapMetadata {
-    pub version : String,
-    pub tiled_version : String,
-    pub render_order : RenderOrder,
-    pub next_layer_id : u32,
-    pub next_object_id : u32,
-}
-
-pub struct Map {
-    pub width : u32,
-    pub height : u32,
-    pub tile_width : u32,
-    pub tile_height : u32,
-    pub total_tiles : u32,
-    pub infinite : bool,
-    pub orientation : Orientation,
-
-    pub tilesets : Vec<Tileset>,
-    pub layers : Vec<Layer>,
-    pub obj_groups : Vec<ObjGroup>,
-    pub img_layers : Vec<ImageLayer>,
-    pub texts : Vec<Text>,
-
-    pub path : String,
-    pub metadata : MapMetadata,
-    // for counting what layer we are at
-    current_layer: u32,
-    
-}
-
-impl Map {
-    pub fn new(filename : &str) -> Result<Map, TiledError> {
-        let path = match filename.rsplit_once('/') {
-            Some((path, _)) => path,
-            None => "",
-        };
-        let mut path = path.to_owned();
-        path.push('/');
-        Self::load_and_parse_xml(
-            read_file_to_string(filename)?,
-            &path
-        )
-    }
-
-    fn blank_map(path: String) -> Map {
-        Map {
-            width : 0,
-            height : 0,
-            tile_width : 0,
-            tile_height : 0,
-            total_tiles : 1,
-            infinite : false,
-            orientation : Orientation::Orthogonal,
-
-            tilesets : Vec::new(),
-            layers : Vec::new(),
-            obj_groups : Vec::new(),
-            img_layers : Vec::new(),
-            texts : Vec::new(),
-            path,
-            metadata : MapMetadata {
-                version: "".to_string(),
-                tiled_version: "".to_string(),
-                render_order: RenderOrder::RightDown,
-                next_layer_id: 0,
-                next_object_id: 0,
-            },
-
-            current_layer: 0,
-        }
-    }
-
-    fn parse_map_attribs(&mut self, attribs : Vec<Attribute>) -> Result<(), TiledError> {
-        for a in attribs {
-            match a.key.as_ref() {
-                b"width" => self.width = get_value(&a.value)?,
-                b"height" => self.height = get_value(&a.value)?,
-                b"tilewidth" => self.tile_width = get_value(&a.value)?,
-                b"tileheight" => self.tile_height = get_value(&a.value)?,
-                b"infinite" => self.infinite = get_value::<u32>(&a.value)? == 1,
-                b"orientation" => self.orientation =  match a.value.as_ref() {
-                    b"orthogonal" => Orientation::Orthogonal,
-                    b"isometric" => Orientation::Isometric,
-                    b"staggard" => Orientation::IsometricStaggered,
-                    b"hexagonal" => Orientation::HexagonalStaggered,
-                    _ => panic!("unrecognized map orientation"),
-                },
-                b"version" => self.metadata.version = get_string(&a.value)?.to_string(),
-                b"tiledversion" => self.metadata.tiled_version = get_string(&a.value)?.to_string(),
-                b"nextlayerid" => self.metadata.next_layer_id = get_value(&a.value)?,
-                b"nextobjectid" => self.metadata.next_object_id = get_value(&a.value)?,
-                b"renderorder" => self.metadata.render_order = match a.value.as_ref() {
-                    b"right-down" => RenderOrder::RightDown,
-                    b"right-up" => RenderOrder::RightUp,
-                    b"left-down" => RenderOrder::LeftDown,
-                    b"left-up" => RenderOrder::LeftUp,
-                    _ => { return Err(TiledError::UnsupportedType()); },
-                },
-                _ => println!("warning: unrecognized atrribute {:?}", a.key),
-            }
-        }
-        Ok(())
-    }
-
-    fn load_and_parse_xml(map_file_text : String, path : &str) -> Result<Map, TiledError> {
-        let mut reader = Reader::from_str(&map_file_text);
-        let mut map = Self::blank_map(path.to_string());
-        parse_xml(&mut map, &mut reader)?;
-        Ok(map)
-    }
-}
-
-impl HandleXml for Map {
-    fn start(&mut self, e : &BytesStart, reader: &mut Reader<&[u8]>) -> Result<(), TiledError> {
-        match e.name().as_ref() {
-            
-            b"map" => self.parse_map_attribs(collect_attribs(&e)?)?,
-            b"layer" => {
-                self.layers.push(Layer::new(collect_attribs(&e)?, reader, self.current_layer)?);
-                self.current_layer+=1;
-            }, //add layer properly
-            b"objectgroup" => {
-                self.obj_groups.push(ObjGroup::new(collect_attribs(&e)?, reader, self.path.clone(), self.current_layer)?);
-                self.current_layer += 1;
-            },
-            b"imagelayer" => {
-                self.img_layers.push(ImageLayer::new(collect_attribs(&e)?, reader, self.current_layer)?);
-                self.current_layer += 1;
-            },
-            _ => println!("unrecognized tag {:?}", e.name()),
-        }
-        Ok(())
-    }
-    fn empty(&mut self, e : &BytesStart) -> Result<(), TiledError> {
-        match e.name().as_ref() {
-            b"tileset" => {
-                self.tilesets.push(
-                    Tileset::new(collect_attribs(&e)?, self.path.clone())?
-                );
-                self.total_tiles += self.tilesets.last().unwrap().tile_count;
-            },
-            _ => println!("unrecognized empty tag {:?}", e.name()),
-        }
-        Ok(())
-    }
-    fn self_tag() -> &'static str {
-        ""
-    }
+    pub r : u8,
+    pub g : u8,
+    pub b : u8,
+    pub a : u8,
 }
 
 #[cfg(test)]

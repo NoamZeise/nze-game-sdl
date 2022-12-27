@@ -1,12 +1,79 @@
 
-use super::{helper::*, LayerData, ObjData, Text, TextHorizontalAlign, TextVerticalAlign, Colour};
+use super::{helper::*, LayerData, Colour};
 use super::error::TiledError;
-use super::{ObjGroup, Obj, Poly, Properties};
+use super::Properties;
 use geometry::{Rect, Vec2};
 
 use quick_xml::events::attributes::Attribute;
 use quick_xml::events::{BytesStart, BytesText};
 use quick_xml::reader::Reader;
+
+pub struct ObjData {
+    pub id: u32,
+    pub name: String,
+    pub type_name: String,
+    pub visible: bool,
+}
+
+pub struct Obj {
+    pub props : Properties,
+    pub rect : Rect,
+    pub rotation: f64,
+    pub info: ObjData,
+    poly : Option<Box<Poly>>,
+    text : Option<Box<Text>>,
+    point: bool,
+    ellipse: bool,
+    pub template: Option<String>,
+}
+
+pub struct Poly {
+    pub points : Vec<Vec2>,
+    pub obj : Obj,
+    pub closed : bool,
+}
+
+pub type Point = Obj;
+pub type Ellipse = Obj;
+
+#[derive(Eq, PartialEq)]
+pub enum TextHorizontalAlign {
+    Left,
+    Center,
+    Right,
+    Justify
+}
+
+#[derive(Eq, PartialEq)]
+pub enum TextVerticalAlign {
+    Top,
+    Center,
+    Bottom
+}
+
+pub struct Text {
+    pub obj: Obj,
+    pub text: String,
+    pub font_family: String,
+    pub pixel_size: u32,
+    pub wrap: bool,
+    pub bold: bool,
+    pub italic: bool,
+    pub horizontal_align : TextHorizontalAlign,
+    pub vertical_align : TextVerticalAlign,
+    pub colour: Colour,
+}
+
+pub struct ObjGroup {
+    pub props : Properties,
+    pub objs  : Vec<Obj>,
+    pub polys : Vec<Poly>,
+    pub points: Vec<Point>,
+    pub ellipse: Vec<Ellipse>,
+    pub text: Vec<Text>,
+    pub info: LayerData,
+    path: String,
+}
 
 impl ObjData {
     pub fn blank() -> ObjData {

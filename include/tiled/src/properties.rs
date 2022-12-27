@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 
-use super::Properties;
 use super::helper::*;
 use super::TiledError;
 
@@ -10,6 +9,11 @@ use quick_xml::events::attributes::Attribute;
 enum PropertyType {
     Bool,
     Int,
+}
+
+pub struct Properties {
+    pub booleans : HashMap<String, bool>,
+    pub integers : HashMap<String, i64>,
 }
 
 impl Properties {

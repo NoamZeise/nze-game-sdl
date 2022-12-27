@@ -1,6 +1,16 @@
-use super::{ImageLayer, TiledError, HandleXml, helper::*, LayerData, Properties};
+use super::{TiledError, HandleXml, helper::*, LayerData, Properties};
 
 use quick_xml::{events::{BytesStart, attributes::Attribute}, Reader};
+
+pub struct ImageLayer {
+    pub image_path : String,
+    pub width: u32,
+    pub height: u32,
+    pub repeat_x: bool,
+    pub repeat_y: bool,
+    pub info: LayerData,
+    pub props: Properties,
+}
 
 impl ImageLayer {
     fn blank() -> ImageLayer {

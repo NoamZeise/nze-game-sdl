@@ -45,7 +45,7 @@ impl<'a, T> TextureManager<'a, T> {
                 self.textures.push(self.texture_creator.load_texture(path)?);
                 self.loaded_texture_paths.insert(path_as_string, self.textures.len() - 1);
 
-                println!("loaded: {}", path.to_str().unwrap());
+                println!("loaded texture: {}", path.to_str().unwrap());
 
                 self.textures.len() - 1
             },

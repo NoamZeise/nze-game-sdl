@@ -42,14 +42,14 @@ pub struct FontManager<'a, T> {
 }
 
 impl<'a, T: 'a> FontManager<'a, T> {
-    pub(crate) fn new(ttf_context : &'a ttf::Sdl2TtfContext, texture_creator : &'a TextureCreator<T>) -> Result<Self, String> {
-        Ok(FontManager {
+    pub(crate) fn new(ttf_context : &'a ttf::Sdl2TtfContext, texture_creator : &'a TextureCreator<T>) -> Self {
+        FontManager {
             texture_creator,
             ttf_context,
             loaded_font_paths: HashMap::new(),
             fonts : Vec::new(),
             text_draws: Vec::new(),
-        })
+        }
     }
 
     pub fn load_font(&mut self, path : &Path) -> Result<resource::Font, String>{
@@ -63,6 +63,7 @@ impl<'a, T: 'a> FontManager<'a, T> {
                         Err(e) => { return Err(e.to_string()); }
                     }
                 );
+                println!("loaded font: {}", path.to_str().unwrap());
                 self.loaded_font_paths.insert(path_string, self.fonts.len() - 1);
                 self.fonts.len() - 1
             }

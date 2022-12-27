@@ -43,8 +43,8 @@ pub fn get_value<T : std::str::FromStr>(data : &std::borrow::Cow<[u8]>)  -> Resu
     }
 }
 
-fn hex_from_str(txt : &str) -> Result<u32, TiledError> {
-    match u32::from_str_radix(txt, 16) {
+fn hex_from_str(txt : &str) -> Result<u8, TiledError> {
+    match u8::from_str_radix(txt, 16) {
         Ok(v) => Ok(v),
         Err(_) => Err(TiledError::ParseError(String::from("hex value could not be parsed to integer"))),
     }

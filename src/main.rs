@@ -9,8 +9,8 @@ pub fn main() -> Result<(), String> {
         "Game Template",
         geometry::Rect::new(0.0, 0.0, 240.0, 160.0),
         geometry::Vec2::new(240.0, 160.0)
-    )?;
-    let mut render = Render::new(drawing_area, &context)?;
+    ).unwrap();
+    let mut render = Render::new(drawing_area, &context).unwrap();
    
     let mono_font = render.font_manager.load_font(Path::new("textures/fonts/FiraCode-Light.ttf"))?;
 

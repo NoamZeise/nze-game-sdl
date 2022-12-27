@@ -5,13 +5,15 @@ use sdl2::video::{Window, WindowContext};
 use sdl2::render::{Canvas, TextureCreator};
 
 pub mod input;
+pub mod resource;
+pub mod error;
 mod map;
 mod camera;
 mod texture_manager;
 mod font_manager;
-pub mod resource;
 mod types;
 mod rect_conversion;
+mod error_macros;
 
 pub use texture_manager::TextureManager;
 pub use camera::Camera;
@@ -21,6 +23,7 @@ pub use map::Map;
 use crate::input::Controls;
 
 use geometry::*;
+use error::Error;
 
 
 /// This holds ownership of many sdl types that are required for being able to use it,
@@ -35,22 +38,20 @@ pub struct ContextSdl {
 }
 
 impl ContextSdl {
-    fn new(cam: &Camera, window_name: &str) -> Result<(Canvas<Window>, ContextSdl), String> {
-        let sdl_context = sdl2::init()?;
-        let _video_subsystem = sdl_context.video()?;
-        let _image_context = image::init(image::InitFlag::PNG)?;
-        let ttf_context = sdl2::ttf::init().map_err(|e| e.to_string())?;
-        let window = _video_subsystem
+    fn new(cam: &Camera, window_name: &str) -> Result<(Canvas<Window>, ContextSdl), Error> {
+        let sdl_context = init_err!(sdl2::init())?;
+        let _video_subsystem = init_err!(sdl_context.video())?;
+        let _image_context = init_err!(image::init(image::InitFlag::PNG))?;
+        let ttf_context = init_err!(sdl2::ttf::init())?;
+        let window = init_err!(_video_subsystem
         .window(window_name, cam.get_window_size().x as u32, cam.get_window_size().y as u32)
         .opengl()
-        .build()
-        .map_err(|e| e.to_string())?;
+        .build())?;
 
-    let canvas = window
+    let canvas = init_err!(window
         .into_canvas()
         .present_vsync()
-        .build()
-        .map_err(|e| e.to_string())?;
+        .build())?;
         let texture_creator = canvas.texture_creator();
 
         Ok((canvas, ContextSdl { sdl_context, _video_subsystem, _image_context, ttf_context, texture_creator}))
@@ -68,7 +69,7 @@ impl DrawingArea {
     ///
     ///- 'cam_rect' the x,y part is the camera's offset the w,h is the target resolution of the drawing area
     ///- 'window_size' the size of the OS window made, does not need to match 'cam_rect'
-    pub fn new(window_name: &str, cam_rect: Rect, window_size: Vec2) -> Result<(Camera, DrawingArea,ContextSdl), String> {
+    pub fn new(window_name: &str, cam_rect: Rect, window_size: Vec2) -> Result<(Camera, DrawingArea,ContextSdl), Error> {
         let cam = Camera::new(cam_rect, window_size);
         let (mut canvas, holder) = ContextSdl::new(&cam, window_name)?;
         canvas.set_blend_mode(sdl2::render::BlendMode::Blend);
@@ -88,12 +89,12 @@ pub struct Render<'sdl> {
 
 
 impl<'sdl> Render<'sdl> {
-    pub fn new(drawing_area: DrawingArea, context: &ContextSdl) -> Result<Render, String> {
+    pub fn new(drawing_area: DrawingArea, context: &ContextSdl) -> Result<Render, Error> {
         Ok(Render {
             texture_manager: TextureManager::new(&context.texture_creator),
-            font_manager: FontManager::new(&context.ttf_context, &context.texture_creator)?,
+            font_manager: FontManager::new(&context.ttf_context, &context.texture_creator),
             controls: Controls::new(),
-            event_pump: context.sdl_context.event_pump()?,
+            event_pump: init_err!(context.sdl_context.event_pump())?,
             drawing_area,
         })
     }
