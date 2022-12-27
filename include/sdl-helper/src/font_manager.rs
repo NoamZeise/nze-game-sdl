@@ -73,8 +73,8 @@ impl<'a, T: 'a> FontManager<'a, T> {
         })
     }
     /// return a [resource::Text] that can be put into a [TextObject] to be passed to [Camera]
-    pub fn get_text(&mut self, font: &resource::Font, text: &str, colour : Color) -> Result<Text, String>    {
-        let t = Self::get_sdl2_texture(text, colour, &self.fonts[font.id], self.texture_creator)?;
+    pub fn get_text(&mut self, font: &resource::Font, text: &str, colour : Colour) -> Result<Text, String>    {
+        let t = Self::get_sdl2_texture(text, colour.to_sdl2_colour(), &self.fonts[font.id], self.texture_creator)?;
         let width = t.query().width;
         let height = t.query().height;
         for (i, e) in self.text_draws.iter_mut().enumerate() {
@@ -123,8 +123,8 @@ impl<'a, T: 'a> FontManager<'a, T> {
     
     fn get_text_rect(tex: &sdl2::render::Texture, pos: Vec2, height : u32) -> sdl2::rect::Rect {
         let dim  = Vec2::new(tex.query().width as f64, tex.query().height as f64);
-        let rect = Self::get_text_rect_from_height(dim, pos, height);
-        rect
+        let rect = get_text_rect_from_height(dim, pos, height as f64);
+        rect.to_sdl_rect()
     }
 
     /// draws the supplied text to the canvas in the supplied font at the given height and position
@@ -152,14 +152,15 @@ impl<'a, T: 'a> FontManager<'a, T> {
         }
     }
 
-    pub fn get_text_rect_from_height(dim: Vec2, pos: Vec2, height : u32) -> sdl2::rect::Rect {
+}
+
+
+    pub fn get_text_rect_from_height(dim: Vec2, pos: Vec2, height : f64) -> Rect {
         let ratio = dim.y / dim.x;
-        sdl2::rect::Rect::new(
-                pos.x as i32,
-                pos.y as i32,
-                (height as f64 / ratio) as u32,
+        Rect::new(
+                pos.x,
+                pos.y,
+                height / ratio,
                 height
              )
     }
-
-}

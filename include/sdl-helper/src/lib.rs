@@ -15,7 +15,7 @@ mod rect_conversion;
 
 pub use texture_manager::TextureManager;
 pub use camera::Camera;
-pub use font_manager::FontManager;
+pub use font_manager::{FontManager, get_text_rect_from_height};
 pub use types::{Colour, GameObject, TextObject};
 pub use map::Map;
 use crate::input::Controls;

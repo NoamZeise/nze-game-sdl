@@ -1,4 +1,4 @@
-use sdl_helper::{Map, Camera, Colour, Render, DrawingArea};
+use sdl_helper::{Map, Camera, Colour, Render, DrawingArea, TextObject, FontManager};
 use geometry::*;
 
 use std::path::Path;
@@ -14,6 +14,9 @@ pub fn main() -> Result<(), String> {
    
     let mono_font = render.font_manager.load_font(Path::new("textures/FiraCode-Light.ttf"))?;
 
+    let text = render.font_manager.get_text(&mono_font, "Hello Sdl2", Colour::white())?;
+    let text = TextObject::new(text, sdl_helper::get_text_rect_from_height(Vec2::new(text.width as f64, text.height as f64), Vec2::new(0.0, 0.0), 10.0), Vec2::new(1.0, 1.0), Colour::white());
+
     let map = Map::new("test-resources/test.tmx", &mut render.texture_manager, &mut render.font_manager)?;
 
     loop {
@@ -22,7 +25,9 @@ pub fn main() -> Result<(), String> {
         render.start_draw();
         
         map.draw(&mut cam);
-        cam.draw_disposable_text(&mono_font, "Hello SDL!".to_string(), 40, Vec2::new(10.0, 40.0), Colour::white(), Vec2::new(1.0, 1.0));
+        //cam.draw_disposable_text(&mono_font, "Hello SDL!".to_string(), 40, Vec2::new(10.0, 40.0), Colour::white(), Vec2::new(1.0, 1.0));
+
+        cam.draw_text(text);
         
         render.end_draw(&mut cam)?;
 

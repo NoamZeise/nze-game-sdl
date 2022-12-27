@@ -68,7 +68,7 @@ impl GameObject {
             colour,
         }
     }
-    pub fn get_texture(&self) -> resource::Texture {
+    pub(crate) fn get_texture(&self) -> resource::Texture {
         self.texture
     }
 }
@@ -80,4 +80,10 @@ pub struct TextObject {
     pub rect: Rect,
     pub parallax: Vec2,
     pub colour: Colour,
+}
+
+impl TextObject {
+    pub fn new(text: resource::Text, rect: Rect, parallax: Vec2, colour: Colour) -> TextObject {
+        TextObject { texture: text, rect, parallax, colour}
+    }
 }
