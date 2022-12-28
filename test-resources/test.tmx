@@ -20,7 +20,7 @@
 1,1,1,1
 </data>
  </layer>
- <objectgroup id="3" name="obj1">
+ <objectgroup id="3" name="obj1" parallaxx="0.5" parallaxy="0.5">
   <properties>
    <property name="obj_group" type="bool" value="true"/>
   </properties>

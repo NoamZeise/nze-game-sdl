@@ -1,4 +1,4 @@
-use sdl_helper::{Map, Camera, Colour, Render, DrawingArea, TextObject, error::Error};
+use sdl_helper::{Map, Camera, Colour, Render, DrawingArea, TextObject, error::Error, GameObject};
 use geometry::*;
 
 use std::path::Path;
@@ -8,7 +8,7 @@ pub fn main() -> Result<(), Error> {
     let (mut cam, drawing_area, context) = DrawingArea::new(
         "Game Template",
         geometry::Rect::new(0.0, 0.0, 240.0, 160.0),
-        geometry::Vec2::new(240.0, 160.0)
+        geometry::Vec2::new(240.0 * 4.0, 160.0 * 4.0)
     ).unwrap();
     let mut render = Render::new(drawing_area, &context)?;
    
@@ -19,21 +19,36 @@ pub fn main() -> Result<(), Error> {
 
     let map = Map::new("test-resources/test.tmx", &mut render.texture_manager, &mut render.font_manager)?;
 
+    let mut is_gaia = true;
+    let mut ephemeral_obj = GameObject::new_from_tex(render.texture_manager.load(Path::new("textures/gaia.png"))?);
+
     loop {
         update(&mut render, &mut cam)?;
+
+        if render.controls.should_close {
+            break;
+        }
+
+        if render.controls.input.a && !render.controls.prev_input.a {
+            render.texture_manager.unload_from_gameobject(ephemeral_obj);
+            if is_gaia {
+                ephemeral_obj = GameObject::new_from_tex(
+                    render.texture_manager.load(Path::new("textures/error.png"))?);
+            } else {
+                ephemeral_obj = GameObject::new_from_tex(
+                    render.texture_manager.load(Path::new("textures/gaia.png"))?);
+            }
+            is_gaia = !is_gaia;
+        }
         
         render.start_draw();
         
         map.draw(&mut cam);
         //cam.draw_disposable_text(&mono_font, "Hello SDL!".to_string(), 40, Vec2::new(10.0, 40.0), Colour::white(), Vec2::new(1.0, 1.0));
-
         cam.draw_text(&text);
+        cam.draw(&ephemeral_obj);
         
         render.end_draw(&mut cam)?;
-
-        if render.controls.should_close {
-            break;
-        }
     }
 
     Ok(())
