@@ -6,10 +6,9 @@ use sdl2::ttf;
 use std::collections::HashMap;
 use std::path::Path;
 
+use crate::{resource, Colour, Error, rect_conversion::RectConversion};
+use crate::{file_err, font_err, draw_err, unload_resource, load_resource, load_res_start};
 use geometry::*;
-use crate::rect_conversion::RectConversion;
-use crate::{resource, Colour, file_err, Error, font_err, draw_err};
-use resource::Text;
 
 struct ResourceTextDraw<'a> {
     tex  : sdl2::render::Texture<'a>,
@@ -25,7 +24,7 @@ pub struct DisposableTextDraw {
 }
 
 pub struct TextDraw {
-    pub text: Text,
+    pub text: resource::Text,
     pub rect: Rect,
     pub colour: Colour,
 }
@@ -37,7 +36,7 @@ pub struct FontManager<'a, T> {
     texture_creator : &'a TextureCreator<T>,
     ttf_context: &'a ttf::Sdl2TtfContext,
     loaded_font_paths : HashMap<String, usize>,
-    pub fonts : Vec<ttf::Font<'a, 'static>>,
+    pub fonts : Vec<Option<ttf::Font<'a, 'static>>>,
     text_draws: Vec<Option<sdl2::render::Texture<'a>>>,
 }
 
@@ -52,40 +51,39 @@ impl<'a, T: 'a> FontManager<'a, T> {
         }
     }
 
-    pub fn load_font(&mut self, path : &Path) -> Result<resource::Font, Error>{
-        let path_string = path.to_string_lossy().to_string();
-        let font_index = match self.loaded_font_paths.contains_key(&path_string) {
-            true => self.loaded_font_paths[&path_string],
-            false => {
-                self.fonts.push(file_err!(self.ttf_context.load_font(path, FONT_LOAD_SIZE))?);
-                println!("loaded font: {}", path.to_str().unwrap());
-                self.loaded_font_paths.insert(path_string, self.fonts.len() - 1);
-                self.fonts.len() - 1
-            }
-        };
+    pub fn load(&mut self, path : &Path) -> Result<resource::Font, Error>{
+        let font_index = load_res_start!(path, self.loaded_font_paths, self, load_font);
         Ok(
             resource::Font {
             id: font_index,
         })
     }
+
+    load_resource!(load_font, self, self.fonts, self.loaded_font_paths, self.ttf_context, "font", FONT_LOAD_SIZE);
+
+    unload_resource!(self, self.loaded_font_paths, self.fonts, font, resource::Font, "font");
+
     /// return a [resource::Text] that can be put into a [TextObject] to be passed to [Camera]
-    pub fn get_text(&mut self, font: &resource::Font, text: &str, colour : Colour) -> Result<Text, Error>    {
-        let t = Self::get_sdl2_texture(text, colour.to_sdl2_colour(), &self.fonts[font.id], self.texture_creator)?;
+    pub fn get_text(&mut self, font: &resource::Font, text: &str, colour : Colour) -> Result<resource::Text, Error> {
+        if self.fonts[font.id].is_none() {
+            return Err(Error::MissingResource(String::from("Used a text with an unloaded font")));
+        }
+        let t = Self::get_sdl2_texture(text, colour.to_sdl2_colour(), self.fonts[font.id].as_ref().unwrap(), self.texture_creator)?;
         let width = t.query().width;
         let height = t.query().height;
         for (i, e) in self.text_draws.iter_mut().enumerate() {
             if e.is_none() {
                 *e = Some(t);
-                return Ok(Text{id: i, width, height});
+                return Ok(resource::Text{id: i, width, height});
             }
         }
         self.text_draws.push(Some(t));
-        Ok(Text { id: self.text_draws.len() - 1, width, height})
+        Ok(resource::Text { id: self.text_draws.len() - 1, width, height})
     }
 
     /// frees the texture stored and associated with the [TextDraw].
     /// The [TextDraw] must not be used after freeing
-    pub fn unload_text_draw(&mut self, text_draw: Text) {
+    pub fn unload_text_draw(&mut self, text_draw: resource::Text) {
         self.text_draws[text_draw.id] = None;
     }
     
@@ -95,7 +93,8 @@ impl<'a, T: 'a> FontManager<'a, T> {
 
     fn get_draw_at_vec2(&self, font: &resource::Font, text: &str, height : u32, pos: Vec2, colour: Color) -> Result<ResourceTextDraw, Error> {
         if text.len() == 0 { return Err(Error::TextRender("text length should be greater than 0".to_string())); }
-        let tex = Self::get_sdl2_texture(text, colour, &self.fonts[font.id], self.texture_creator)?;
+        if self.fonts[font.id].is_none() { return Err(Error::MissingResource("Font has been unloaded".to_string()))}
+        let tex = Self::get_sdl2_texture(text, colour, self.fonts[font.id].as_ref().unwrap(), self.texture_creator)?;
         Ok(
             ResourceTextDraw {
                 rect : Self::get_text_rect(&tex, pos, height),

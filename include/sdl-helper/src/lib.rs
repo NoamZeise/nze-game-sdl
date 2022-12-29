@@ -14,6 +14,7 @@ mod font_manager;
 mod types;
 mod rect_conversion;
 mod error_macros;
+mod loader_macros;
 
 pub use texture_manager::TextureManager;
 pub use camera::Camera;
@@ -72,6 +73,7 @@ impl DrawingArea {
     pub fn new(window_name: &str, cam_rect: Rect, window_size: Vec2) -> Result<(Camera, DrawingArea,ContextSdl), Error> {
         let cam = Camera::new(cam_rect, window_size);
         let (mut canvas, holder) = ContextSdl::new(&cam, window_name)?;
+        println!("SDL2 context loaded...");
         canvas.set_blend_mode(sdl2::render::BlendMode::Blend);
         Ok((cam, DrawingArea { canvas }, holder))
     }

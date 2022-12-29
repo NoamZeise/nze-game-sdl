@@ -73,7 +73,7 @@ impl Layer {
             l.info.colour.a as u8
             );
         for t in l.text.iter() {
-            let font = font_manager.load_font(Path::new(&("textures/fonts/".to_string() + &t.font_family.replace(" ", "-") + ".ttf")))?;
+            let font = font_manager.load(Path::new(&("textures/fonts/".to_string() + &t.font_family.replace(" ", "-") + ".ttf")))?;
             let text = font_manager.get_text(&font, &t.text,
                                              Colour::new(
                                                  t.colour.r as u8,
