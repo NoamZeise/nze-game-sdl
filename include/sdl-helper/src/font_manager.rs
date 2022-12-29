@@ -40,7 +40,6 @@ pub struct FontManager<'a, T> {
 
 impl<'a, T: 'a> FontManager<'a, T> {
 
-     //load a ttf font face to memory and get a [resource::Font] object that references it
     pub(crate) fn new(ttf_context : &'a ttf::Sdl2TtfContext, texture_creator : &'a TextureCreator<T>) -> Self {
         FontManager {
             texture_creator,
@@ -51,6 +50,7 @@ impl<'a, T: 'a> FontManager<'a, T> {
         }
     }
 
+    //load a ttf font face to memory and get a [resource::Font] object that references it
     pub fn load(&mut self, path : &Path) -> Result<resource::Font, Error>{
         let font_index =
             load!(path, self.fonts, self.loaded_font_paths, self.ttf_context, "Font", FONT_LOAD_SIZE);
@@ -85,10 +85,16 @@ impl<'a, T: 'a> FontManager<'a, T> {
         self.get_draw_at_vec2(font, text, height, Vec2::new(0.0, 0.0), colour)
     }
 
-    fn get_draw_at_vec2(&self, font: &resource::Font, text: &str, height : u32, pos: Vec2, colour: Color) -> Result<ResourceTextDraw, Error> {
-        if text.len() == 0 { return Err(Error::TextRender("text length should be greater than 0".to_string())); }
-        if self.fonts[font.id].is_none() { return Err(Error::MissingResource("Font has been unloaded".to_string()))}
-        let tex = Self::get_sdl2_texture(text, colour, self.fonts[font.id].as_ref().unwrap(), self.texture_creator)?;
+    fn get_draw_at_vec2(&self, font: &resource::Font, text: &str, height : u32, pos: Vec2, colour: Color)
+                        -> Result<ResourceTextDraw, Error> {
+        if text.len() == 0 {
+            return Err(Error::TextRender("text length should be greater than 0".to_string()));
+        }
+        if self.fonts[font.id].is_none() {
+            return Err(Error::MissingResource("Font has been unloaded".to_string()))
+        }
+        let tex = Self::get_sdl2_texture(
+            text, colour, self.fonts[font.id].as_ref().unwrap(), self.texture_creator)?;
         Ok(
             ResourceTextDraw {
                 rect : Self::get_text_rect(&tex, pos, height),
@@ -98,9 +104,7 @@ impl<'a, T: 'a> FontManager<'a, T> {
     }
 
     fn get_sdl2_texture(text: &str, colour : Color, font: &ttf::Font<'a, 'static>, texture_creator : &'a TextureCreator<T>) -> Result<sdl2::render::Texture<'a>, Error> {
-        let surface = font_err!(font
-            .render(text)
-            .blended(colour))?;
+        let surface = font_err!(font.render(text).blended(colour))?;
         Ok(font_err!(texture_creator.create_texture_from_surface(&surface))?)
     }
     
@@ -133,7 +137,6 @@ impl<'a, T: 'a> FontManager<'a, T> {
     }
     
 }
-
 
 pub fn get_text_rect_from_height(dim: Vec2, pos: Vec2, height : f64) -> Rect {
     let ratio = dim.y / dim.x;

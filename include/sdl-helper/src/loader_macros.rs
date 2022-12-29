@@ -3,11 +3,15 @@
 
 #[macro_export]
 macro_rules! draw {
+    // draw a resource with an id, colour and rects to an sdl canvas
     (
-        fn $fn_name:ident($self:ident, $draw:ident : $draw_type:ty)
-            
-        ($res_list:expr, $id:expr, $col:expr, $text_rect: expr, $draw_rect:expr)) => {
-
+        fn $fn_name:ident($self:ident, $draw:ident : $draw_type:ty) (
+            $res_list:expr, // list of resources
+            $id:expr, // resource ID
+            $col:expr, // resource colour
+            $text_rect: expr, // texture rect
+            $draw_rect:expr)) => { // draw rect
+        
         pub(crate) fn $fn_name(&mut $self, canvas: &mut Canvas<Window>, $draw:$draw_type) -> Result<(), Error> {
 	match &mut $res_list[$id] {
             Some(t) => {

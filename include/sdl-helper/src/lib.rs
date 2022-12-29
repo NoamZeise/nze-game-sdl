@@ -44,17 +44,19 @@ impl ContextSdl {
         let _video_subsystem = init_err!(sdl_context.video())?;
         let _image_context = init_err!(image::init(image::InitFlag::PNG))?;
         let ttf_context = init_err!(sdl2::ttf::init())?;
-        let window = init_err!(_video_subsystem
-        .window(window_name, cam.get_window_size().x as u32, cam.get_window_size().y as u32)
-        .opengl()
-        .build())?;
-
-    let canvas = init_err!(window
-        .into_canvas()
-        .present_vsync()
-        .build())?;
+        let window = init_err!(
+            _video_subsystem
+                .window(window_name, cam.get_window_size().x as u32, cam.get_window_size().y as u32)
+                .opengl()
+                .build()
+        )?;
+        let canvas = init_err!(
+            window
+                .into_canvas()
+                .present_vsync()
+                .build()
+        )?;
         let texture_creator = canvas.texture_creator();
-
         Ok((canvas, ContextSdl { sdl_context, _video_subsystem, _image_context, ttf_context, texture_creator}))
     }
 
@@ -110,7 +112,6 @@ impl<'sdl> Render<'sdl> {
     ///
     /// This is when the sdl drawing commands actually occur
     pub fn end_draw(&mut self, cam: &mut Camera) -> Result<(), Error>{
-        
         for d in cam.drain_draws() {
             self.texture_manager.draw(&mut self.drawing_area.canvas, d)?;
         }
@@ -123,8 +124,6 @@ impl<'sdl> Render<'sdl> {
         for d in cam.drain_rect_draws() {
             self.texture_manager.draw_rect(&mut self.drawing_area.canvas, &d.0, d.1)?;
         }
-        
-      
         self.drawing_area.canvas.present();
         Ok(())
     }
