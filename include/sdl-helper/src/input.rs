@@ -2,11 +2,47 @@
 
 use sdl2::event::Event;
 use sdl2::EventPump;
-use sdl2::keyboard::Scancode;
+pub use sdl2::keyboard::Scancode as Key;
 use sdl2::mouse::MouseButton;
 
 use std::time::Instant;
 
+/// macros for getting key bools 
+///
+/// # down
+///
+/// **true if key is down this frame**
+///
+/// use down with the control struct held by render
+///```
+///key!(render.controls, down[Key::A]) // True if key A is held down
+///```
+/// down shorthand
+///```
+///let input = render.controls.input; //store keyboard struct in a var called input
+///key!(input.down[Key::A]) // True if key A is held down
+///```
+///
+/// # pressed
+///
+/// **true if key is down this frame but was up last frame**
+///
+/// using pressed with controls stored in render
+///```
+///key!(render.controls,pressed[Key:A])
+///```
+#[macro_export]
+macro_rules! key {
+    ($controls:expr, down[$key:expr]) => {
+	$controls.input.keys[$key as usize]
+    };
+    ($input:ident.down[$key:expr]) => {
+        $input.keys[$key as usize]
+    };
+    ($controls:expr,pressed[$key:expr]) => {
+       $controls.input.keys[$key as usize] && !$controls.prev_input.keys[$key as usize]
+    };
+}
 
 /// Holds info on input state and frame elapsed time
 /// held and updated by 'Render' at the start of each frame
@@ -76,36 +112,18 @@ impl Mouse {
     }
 }
 
-
 /// Holds character typed that frame, and the state of some useful buttons for controls, as well as the mouse
 #[derive(Copy, Clone)]
 pub struct KBMControls {
-    pub up        : bool,
-    pub down      : bool,
-    pub left      : bool,
-    pub right     : bool,
-    pub a         : bool,
-    pub b         : bool,
-    pub esc       : bool,
-    pub plus      : bool,
-    pub minus     : bool,
-    pub mouse     : Mouse,
-    character     : Option<char>,
+    pub keys : [bool; Key::Num as usize],
+    pub mouse : Mouse,
+    character : Option<char>,
 }
 
 impl KBMControls {
-
     pub(crate) fn new() -> Self {
         KBMControls {
-            up        : false,
-            down      : false,
-            left      : false,
-            right     : false,
-            a         : false,
-            b         : false,
-            esc       : false,
-            plus      : false,
-            minus     : false,
+            keys      : [false; Key::Num as usize],
             mouse     : Mouse::new(),
             character : None
         }
@@ -121,6 +139,7 @@ impl KBMControls {
         }
     }
 
+    /// get the last character typed by the keyboard in text input mode
     pub fn get_typed_character(&mut self) -> Option<char> {
         match self.character {
             Some(c) => {
@@ -148,20 +167,7 @@ impl KBMControls {
             _ => &None
         };
         match key {
-            Some(k) => {
-                match k {
-                    Scancode::Up => self.up    = key_down,
-                    Scancode::Left => self.left  = key_down,
-                    Scancode::Down => self.down  = key_down,
-                    Scancode::Right => self.right = key_down,
-                    Scancode::Z => self.a = key_down,
-                    Scancode::X => self.b = key_down,
-                    Scancode::Escape => self.esc = key_down,
-                    Scancode::Equals => self.plus = key_down,
-                    Scancode::Minus  => self.minus = key_down,
-                    _ => {}
-                }
-            }
+            Some(k) => self.keys[*k as usize] = key_down,
             _ => {}
         }
     }
@@ -174,7 +180,7 @@ impl KBMControls {
                 } else {
                     None
                 }
-                },
+            },
             _ => None,
         }
     }

@@ -1,6 +1,6 @@
 // macros for resource functions for TextureManager and FontManager
 
-
+#[doc(hidden)]
 #[macro_export]
 macro_rules! draw {
     // draw a resource with an id, colour and rects to an sdl canvas
@@ -25,6 +25,7 @@ macro_rules! draw {
     };
 }
 
+#[doc(hidden)]
 #[macro_export]
 macro_rules! load {
     // path           - path to the resource
@@ -41,6 +42,7 @@ macro_rules! load {
     }};
 }
 
+#[doc(hidden)]
 #[macro_export]
 macro_rules! unload_resource{
     // s        - self
@@ -68,11 +70,13 @@ macro_rules! unload_resource{
             };
             $path_map.remove(&loaded_path);
             $res_list[$res.id] = None;
+            println!("unloaded {}, id: {}", $name, $res.id);
         }
     };
 }
 
 //helper for load!
+#[doc(hidden)]
 #[macro_export]
 macro_rules! load_resource_helper {
     // Check for None in a Vec and return index, otherwise return None 
@@ -116,6 +120,7 @@ macro_rules! load_resource_helper {
 }
 
 // helper for load!
+#[doc(hidden)]
 #[macro_export]
 macro_rules! __load_shape {
     ($path:ident, $res_list: expr, $res_paths:expr, $res_name: expr, $tex:expr) => { {

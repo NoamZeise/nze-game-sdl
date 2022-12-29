@@ -138,11 +138,11 @@ impl<'sdl> Render<'sdl> {
     ///
     /// Chnages the resolution of the Sdl Canvas and centeres the window
     pub fn set_win_size(&mut self, cam: &mut Camera, cs: Vec2) -> Result<(), Error> {
+        cam.set_window_size(cs);
         match self.drawing_area.canvas.window_mut().set_size(cs.x as u32, cs.y as u32) {
             Err(_) => { return Err(Error::Sdl2ChangeState(String::from("failed to resize window")));},
             _ => ()
         }
-        cam.set_window_size(cs);
         self.drawing_area.canvas.window_mut().set_position(
             sdl2::video::WindowPos::Centered,
             sdl2::video::WindowPos::Centered

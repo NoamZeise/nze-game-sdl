@@ -1,3 +1,4 @@
+#[doc(hidden)]
 #[macro_export]
 macro_rules! init_err {
      ($expression:expr)  => {
@@ -5,6 +6,7 @@ macro_rules! init_err {
     };
 }
 
+#[doc(hidden)]
 #[macro_export]
 macro_rules! file_err {
      ($expression:expr)  => {
@@ -12,12 +14,15 @@ macro_rules! file_err {
     };
 }
 
+#[doc(hidden)]
 #[macro_export]
 macro_rules! draw_err {
      ($expression:expr)  => {
 	 $expression.map_err(|e| {Error::Draw(e.to_string())})
     };
 }
+
+#[doc(hidden)]
 #[macro_export]
 macro_rules! font_err {
      ($expression:expr)  => {
@@ -25,6 +30,7 @@ macro_rules! font_err {
     };
 }
 
+#[doc(hidden)]
 #[macro_export]
 macro_rules! resource_err {
      ($expression:expr)  => {
