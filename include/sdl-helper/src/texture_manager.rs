@@ -1,14 +1,12 @@
 use sdl2::render::{TextureCreator, Texture, Canvas};
-use sdl2::image::LoadTexture;
-use sdl2::video::Window;
+use sdl2::{image::LoadTexture, video::Window}; 
 
 use std::collections::HashMap;
 use std::path::Path;
 
-use crate::{resource, rect_conversion::RectConversion, types::Colour, file_err, draw_err, error::Error, GameObject};
-use crate::{unload_resource, load};
+use crate::{resource, rect_conversion::RectConversion, types::Colour, error::Error, GameObject};
+use crate::{unload_resource, load, file_err, draw_err, draw};
 use geometry::*;
-
 
 /// holds a `Texture` and some `Rect`s for representing sprites
 #[derive(Clone, Copy)]
@@ -74,21 +72,12 @@ impl<'a, T> TextureManager<'a, T> {
         Ok(())
     }
 
-    pub(crate) fn draw(&mut self, canvas : &mut Canvas<Window>, tex_draw: TextureDraw) -> Result<(), Error> {
-        let tex = match &mut self.textures[tex_draw.tex.id] {
-            Some(t) => t,
-            None => { return Err(Error::MissingResource(String::from("texture used after free"))); },
-        };
-        tex.set_color_mod(
-            tex_draw.colour.r,
-            tex_draw.colour.g,
-            tex_draw.colour.b
-        );
-        tex.set_alpha_mod(tex_draw.colour.a);
-        draw_err!(canvas.copy(
-            tex,
+    draw!{
+        fn draw(self, tex_draw : TextureDraw) (
+            self.textures,
+            tex_draw.tex.id,
+            tex_draw.colour,
             tex_draw.tex_rect.to_sdl_rect(),
-            tex_draw.draw_rect.to_sdl_rect()
-        ))
+            tex_draw.draw_rect.to_sdl_rect())
     }
 }

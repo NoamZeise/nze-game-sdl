@@ -1,13 +1,11 @@
 use sdl2::render::{TextureCreator, Canvas};
-use sdl2::video::Window;
-use sdl2::pixels::Color;
-use sdl2::ttf;
+use sdl2::{video::Window, pixels::Color, ttf};
 
 use std::collections::HashMap;
 use std::path::Path;
 
 use crate::{resource, Colour, Error, rect_conversion::RectConversion};
-use crate::{file_err, font_err, draw_err, unload_resource, load};
+use crate::{file_err, font_err, draw_err, unload_resource, load, load_resource_helper, draw};
 use geometry::*;
 
 struct ResourceTextDraw<'a> {
@@ -66,26 +64,20 @@ impl<'a, T: 'a> FontManager<'a, T> {
        ,self, self.loaded_font_paths, self.fonts, font, resource::Font, "font");
 
     /// return a [resource::Text] that can be put into a 'TextObject' to be passed to 'Camera'
-    pub fn get_text(&mut self, font: &resource::Font, text: &str, colour : Colour) -> Result<resource::Text, Error> {
+    pub fn load_text(&mut self, font: &resource::Font, text: &str, colour : Colour) -> Result<resource::Text, Error> {
         if self.fonts[font.id].is_none() {
             return Err(Error::MissingResource(String::from("Used a text with an unloaded font")));
         }
         let t = Self::get_sdl2_texture(text, colour.to_sdl2_colour(), self.fonts[font.id].as_ref().unwrap(), self.texture_creator)?;
+        //get dimensions before passing to check_and_push
         let width = t.query().width;
         let height = t.query().height;
-        for (i, e) in self.text_draws.iter_mut().enumerate() {
-            if e.is_none() {
-                *e = Some(t);
-                return Ok(resource::Text{id: i, width, height});
-            }
-        }
-        self.text_draws.push(Some(t));
-        Ok(resource::Text { id: self.text_draws.len() - 1, width, height})
+        let index = load_resource_helper!(check_and_push(self.text_draws, Some(t)));
+        Ok(resource::Text { id: index, width, height})
     }
 
-    /// frees the texture stored and associated with the [resource::Text].
-    /// The [resource::Text] must not be used after freeing
-    pub fn unload_text_draw(&mut self, text_draw: resource::Text) {
+    /// frees the texture stored and associated with the [resource::Text], must not be used after freeing
+    pub fn unload_text(&mut self, text_draw: resource::Text) {
         self.text_draws[text_draw.id] = None;
     }
     
@@ -131,17 +123,15 @@ impl<'a, T: 'a> FontManager<'a, T> {
         self.draw(canvas, &disposable.font, &disposable.text, disposable.height, disposable.pos, disposable.colour.to_sdl2_colour())
     }
 
-    pub(crate) fn draw_text_draw(&mut self, canvas : &mut Canvas<Window>, text_draw: TextDraw) -> Result<(), Error> {
-        match &mut self.text_draws[text_draw.text.id] {
-            Some(t) => {
-                t.set_color_mod(text_draw.colour.r, text_draw.colour.g, text_draw.colour.b);
-                t.set_alpha_mod(text_draw.colour.a);
-                Ok(draw_err!(canvas.copy(&t, None, text_draw.rect.to_sdl_rect()))?)
-            },
-            None => Err(Error::MissingResource("text_draw used after free".to_string())),
-        }
+    draw!{
+        fn draw_text_draw(self, text_draw: TextDraw) (
+            self.text_draws,
+            text_draw.text.id,
+            text_draw.colour,
+            None,
+            text_draw.rect.to_sdl_rect())
     }
-
+    
 }
 
 

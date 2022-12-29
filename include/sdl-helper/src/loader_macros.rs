@@ -1,3 +1,26 @@
+// macros for resource functions for TextureManager and FontManager
+
+
+#[macro_export]
+macro_rules! draw {
+    (
+        fn $fn_name:ident($self:ident, $draw:ident : $draw_type:ty)
+            
+        ($res_list:expr, $id:expr, $col:expr, $text_rect: expr, $draw_rect:expr)) => {
+
+        pub(crate) fn $fn_name(&mut $self, canvas: &mut Canvas<Window>, $draw:$draw_type) -> Result<(), Error> {
+	match &mut $res_list[$id] {
+            Some(t) => {
+                t.set_color_mod($col.r, $col.g, $col.b);
+                t.set_alpha_mod($col.a);
+                Ok(draw_err!(canvas.copy(&t, $text_rect, $draw_rect))?)
+            },
+            None => Err(Error::MissingResource("rescource used after free".to_string())),
+        }
+    }
+    };
+}
+
 #[macro_export]
 macro_rules! load {
     // path           - path to the resource
@@ -47,9 +70,9 @@ macro_rules! unload_resource{
 
 //helper for load!
 #[macro_export]
-macro_rules! __load_resource_helper {
-    //start of macro
-    ($res_list:expr) => {{
+macro_rules! load_resource_helper {
+    // Check for None in a Vec and return index, otherwise return None 
+    (check_for_space($res_list:expr)) => {{
             let mut index : Option<usize> = None;
             for (i, t) in $res_list.iter().enumerate() {
                 if t.is_none() {
@@ -60,19 +83,27 @@ macro_rules! __load_resource_helper {
             index
         }
     };
+    // take index as Option, fill index in list or push to end of list
+    (push_resource($res_list:expr, $ind:ident, $res:expr)) => {{
+        match $ind {
+            None => {
+                $res_list.push($res);
+                $res_list.len() - 1
+            },
+            Some(i) => {
+                $res_list[i] = $res;
+                i
+            }
+        }
+    }};
+    //check for space and push texture to list
+    (check_and_push($res_list:expr, $res:expr)) => {{
+        let index = $crate::load_resource_helper!(check_for_space($res_list));
+        $crate::load_resource_helper!(push_resource($res_list, index, $res))
+    }};
     // end of macro
-    ($res_list: expr, $res_paths: expr, $res_name: expr, $ind: ident, $res:ident, $path:ident, $path_as_string:ident) => {
-        {
-            let $ind = match $ind {
-                None => {
-                    $res_list.push($res);
-                    $res_list.len() - 1
-                },
-                Some(i) => {
-                    $res_list[i] = $res;
-                    i
-                }
-            };
+    ($res_list: expr, $res_paths: expr, $res_name: expr, $ind: ident, $res:ident, $path:ident, $path_as_string:ident) => {{
+            let $ind = $crate::load_resource_helper!(push_resource($res_list, $ind, $res));
             $res_paths.insert($path_as_string, $ind);
             println!("loaded {} - id: {} - path: {}", $res_name, $ind, $path.to_str().unwrap());
             Ok($ind)
@@ -88,9 +119,9 @@ macro_rules! __load_shape {
         match $res_paths.contains_key(&path_as_string) {
             true => $res_paths[&path_as_string],
             false => {
-                let index = $crate::__load_resource_helper!($res_list);
+                let index = $crate::load_resource_helper!(check_for_space($res_list));
                 let res = $tex;
-                $crate::__load_resource_helper!($res_list, $res_paths, $res_name, index, res, $path, path_as_string)?
+                $crate::load_resource_helper!($res_list, $res_paths, $res_name, index, res, $path, path_as_string)?
             }
         }
     }};
