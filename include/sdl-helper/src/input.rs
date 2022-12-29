@@ -1,4 +1,4 @@
-//! take sdl2 events and update a struct of bools for required controls
+//! processes sdl2 events and update structs that can be used to control the game
 
 use sdl2::event::Event;
 use sdl2::EventPump;
@@ -15,12 +15,12 @@ use std::time::Instant;
 ///
 /// use down with the control struct held by render
 ///```
-///key!(render.controls, down[Key::A]) // True if key A is held down
+/// key!(render.controls, down[Key::A]) // True if key A is held down
 ///```
 /// down shorthand
 ///```
 ///let input = render.controls.input; //store keyboard struct in a var called input
-///key!(input.down[Key::A]) // True if key A is held down
+/// key!(input.down[Key::A]) // True if key A is held down
 ///```
 ///
 /// # pressed
@@ -29,8 +29,9 @@ use std::time::Instant;
 ///
 /// using pressed with controls stored in render
 ///```
-///key!(render.controls,pressed[Key:A])
+/// key!(render.controls,pressed[Key:A])
 ///```
+///
 #[macro_export]
 macro_rules! key {
     ($controls:expr, down[$key:expr]) => {
@@ -49,7 +50,9 @@ macro_rules! key {
 #[derive(Copy, Clone)]
 pub struct Controls {
     pub input: KBMControls,
+    /// previous frame's input
     pub prev_input: KBMControls,
+    /// time in seconds between last frame and this one
     pub frame_elapsed: f64,
     /// This value must be used by the user, it is set to true by the window controls,
     /// this can also be used in your game loop to exit some other way, 
@@ -115,6 +118,7 @@ impl Mouse {
 /// Holds character typed that frame, and the state of some useful buttons for controls, as well as the mouse
 #[derive(Copy, Clone)]
 pub struct KBMControls {
+    /// an array indexed by [Key] enums as usize
     pub keys : [bool; Key::Num as usize],
     pub mouse : Mouse,
     character : Option<char>,
@@ -139,7 +143,11 @@ impl KBMControls {
         }
     }
 
-    /// get the last character typed by the keyboard in text input mode
+    /// Get the last character typed by the keyboard in text input mode, or 'None' if nothing was typed
+    ///
+    /// Getting a character causes the current character to be set to None,
+    ///
+    /// To enable typing: use 'SdlContext.set_text_input' function.
     pub fn get_typed_character(&mut self) -> Option<char> {
         match self.character {
             Some(c) => {

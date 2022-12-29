@@ -14,7 +14,7 @@ mod font_manager;
 mod types;
 mod rect_conversion;
 mod error_macros;
-mod loader_macros;
+mod resource_macros;
 
 pub use texture_manager::TextureManager;
 pub use camera::Camera;
@@ -60,6 +60,19 @@ impl ContextSdl {
         Ok((canvas, ContextSdl { sdl_context, _video_subsystem, _image_context, ttf_context, texture_creator}))
     }
 
+    /// enable text input so that the 'Control.input' get character function will return typed characters
+    pub fn set_text_input(&mut self, is_enabled: bool) {
+        if is_enabled {
+            self._video_subsystem.text_input().start();
+        } else {
+            self._video_subsystem.text_input().stop();
+        }
+    }
+
+    /// return whether typing to keyboard is for text input is enabled
+    pub fn is_text_input_enabled(&self) -> bool {
+        self._video_subsystem.text_input().is_active()
+    }
 }
 
 /// Holds ownership of an sdl Canvas, this should be passed to [Render]
