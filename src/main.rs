@@ -51,7 +51,7 @@ pub fn main() -> Result<(), Error> {
         render.start_draw();
         
         map.draw(&mut cam);
-        //cam.draw_disposable_text(&mono_font, "Hello SDL!".to_string(), 40, Vec2::new(10.0, 40.0), Colour::white(), Vec2::new(1.0, 1.0));
+        cam.draw_disposable_text(&mono_font, format!("Wheel: {}", render.controls.input.mouse.wheel), 40, render.controls.input.mouse.pos, Colour::white(), Vec2::new(1.0, 1.0));
         cam.draw_text(&text);
         cam.draw(&ephemeral_obj);
         
@@ -63,7 +63,7 @@ pub fn main() -> Result<(), Error> {
 
 
 fn update(render: &mut Render, cam: &mut Camera) -> Result<(), Error> {
-    render.event_loop();
+    render.event_loop(cam);
     let input = render.controls.input;
     let prev_frame = render.controls.frame_elapsed;
     let mut pos = cam.get_offset();
@@ -80,6 +80,9 @@ fn update(render: &mut Render, cam: &mut Camera) -> Result<(), Error> {
     if key!(input.down[Key::Down]) {
         pos.y += SPEED * prev_frame;
     }
+
+    pos.x += SPEED * input.mouse.wheel as f64 * prev_frame;
+    
     cam.set_offset(pos);
     
     if key!(input.down[Key::Equals]) {

@@ -143,8 +143,9 @@ impl<'sdl> Render<'sdl> {
 
     /// Update the controls struct using the sdl events that occured between the previous call.
     /// This should be called at the start of update.
-    pub fn event_loop(&mut self) {
+    pub fn event_loop(&mut self, cam: &mut Camera) {
         self.controls.update(&mut self.event_pump);
+        self.controls.input.mouse.pos = cam.window_to_cam_vec2(self.controls.input.mouse.pos);
     }
 
     /// Update the game window to the new size, and change the [Camera] to the new resolution

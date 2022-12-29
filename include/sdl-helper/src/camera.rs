@@ -116,6 +116,10 @@ impl Camera {
         self.rect.w / self.rect.h
     }
 
+    pub fn window_to_cam_vec2(&self, pos: Vec2) -> Vec2 {
+        (self.size_ratio * pos) + self.get_offset()
+    }
+
     fn update_size_ratio(&mut self) {
         self.size_ratio = Vec2::new(
                 self.rect.w / self.window_size.x,

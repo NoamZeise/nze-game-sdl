@@ -1,5 +1,6 @@
 //! processes sdl2 events and update structs that can be used to control the game
 
+use geometry::Vec2;
 use sdl2::event::Event;
 use sdl2::EventPump;
 pub use sdl2::keyboard::Scancode as Key;
@@ -74,6 +75,7 @@ impl Controls {
 
     pub(crate) fn update(&mut self, event_pump: &mut EventPump) {
         self.prev_input = self.input;
+        self.input.mouse.wheel = 0;
         for e in event_pump.poll_iter() {
             let win_ev = match &e {
                 sdl2::event::Event::Window {
@@ -90,6 +92,11 @@ impl Controls {
             }
             self.input.handle_event(&e);
         }
+        self.input.mouse.pos = Vec2::new(
+            self.input.mouse.x as f64,
+            self.input.mouse.y as f64
+        );                             
+        
         self.frame_elapsed = self.prev_time.elapsed().as_secs_f64();
         self.prev_time = Instant::now();
     }
@@ -98,9 +105,19 @@ impl Controls {
 /// Holds mouse input info
 #[derive(Copy, Clone)]
 pub struct Mouse {
-    pub x : i32,
-    pub y : i32,
+    x : i32,
+    y : i32,
+    /// The position of the mouse corrected by Camera, so that it is unaffected by Camera position or scale
+    ///
+    /// The camera offset is done in 'Render.event_loop'
+    pub pos: Vec2,
+    /// the mouse scroll wheel
+    /// - '0'  if not scrolling
+    /// - '1'  if scrolling up
+    /// - '-1' if scrolling down
+    pub wheel: i32,
     pub left_click : bool,
+    pub middle_click: bool,
     pub right_click : bool,
 }
 
@@ -109,8 +126,44 @@ impl Mouse {
         Mouse {
             x: 0,
             y: 0,
+            pos: Vec2::new(0.0, 0.0),
+            wheel: 0,
             left_click : false,
+            middle_click : false,
             right_click : false,
+        }
+    }
+
+    pub fn handle_mouse(&mut self, event: &Event) {
+        let mut btn_down = false;
+        let btn = match event {
+            Event::MouseWheel { y, ..} => {
+                self.wheel = *y;
+                None
+            },
+            Event::MouseMotion { x, y, .. } => {
+                self.x = *x;
+                self.y = *y;
+                None
+            },
+            Event::MouseButtonDown { mouse_btn, ..} => {
+                btn_down = true;
+                Some(mouse_btn)
+            },
+            Event::MouseButtonUp { mouse_btn, .. } => {
+                btn_down = false;
+                Some(mouse_btn)
+            }
+            _ => None,
+        };
+        match btn {
+            Some(btn) => match btn {
+                MouseButton::Left => self.left_click = btn_down,
+                MouseButton::Middle => self.middle_click = btn_down,
+                MouseButton::Right => self.right_click = btn_down,
+                _ => (),
+            }
+            None => (),
         }
     }
 }
@@ -139,7 +192,7 @@ impl KBMControls {
         } else if event.is_text() {
             self.handle_text(event);
         } else if event.is_mouse() {
-            self.handle_mouse(event);
+            self.mouse.handle_mouse(event);
         }
     }
 
@@ -193,31 +246,4 @@ impl KBMControls {
         }
     }
 
-    fn handle_mouse(&mut self, event : &Event) {
-        let mut btn_down = false;
-        let btn = match event {
-            Event::MouseMotion { x, y, .. } => {
-                self.mouse.x = *x;
-                self.mouse.y = *y;
-                None
-            },
-            Event::MouseButtonDown { mouse_btn, ..} => {
-                btn_down = true;
-                Some(mouse_btn)
-            },
-            Event::MouseButtonUp { mouse_btn, .. } => {
-                btn_down = false;
-                Some(mouse_btn)
-            }
-            _ => None,
-        };
-        match btn {
-            Some(btn) => match btn {
-                MouseButton::Left => self.mouse.left_click = btn_down,
-                MouseButton::Right => self.mouse.right_click = btn_down,
-                _ => (),
-            }
-            None => (),
-        }
-    }
 }
