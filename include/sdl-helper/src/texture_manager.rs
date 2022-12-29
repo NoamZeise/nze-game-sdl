@@ -6,7 +6,7 @@ use std::collections::HashMap;
 use std::path::Path;
 
 use crate::{resource, rect_conversion::RectConversion, types::Colour, file_err, draw_err, error::Error, GameObject};
-use crate::{unload_resource, load_resource, load_res_start};
+use crate::{unload_resource, load};
 use geometry::*;
 
 
@@ -38,9 +38,10 @@ pub struct TextureManager<'a, T> {
 }
 
 impl<'a, T> TextureManager<'a, T> {
+    
  //load a texture to memory and get a [resource::Texture] object that references it
     pub fn load(&mut self, path : &Path) -> Result<resource::Texture, Error> {
-        let tex_index = load_res_start!(path, self.loaded_texture_paths, self, load_texture);
+        let tex_index = load!(path, self.textures, self.loaded_texture_paths, self.texture_creator, "Texture");
         let loaded_tex = self.textures[tex_index].as_ref().unwrap();
         Ok(
         resource::Texture {
@@ -50,14 +51,14 @@ impl<'a, T> TextureManager<'a, T> {
         })
     }
 
-    load_resource!(load_texture, self, self.textures, self.loaded_texture_paths, self.texture_creator, "texture");
-      
     /// Calls 'unload' with the texture attached to the [GameObject]
     pub fn unload_from_gameobject(&mut self, game_object: GameObject) {
         self.unload(game_object.get_texture());
     }
 
-    unload_resource!(self, self.loaded_texture_paths, self.textures, tex, resource::Texture, "texture");
+    unload_resource!(
+        /// unload the internal 'Texture' referenced by the passed [resource::Texture] from memory
+        ,self, self.loaded_texture_paths, self.textures, tex, resource::Texture, "texture");
 
     pub(crate) fn new(tex_creator: &'a TextureCreator<T>) -> Self {
         TextureManager {

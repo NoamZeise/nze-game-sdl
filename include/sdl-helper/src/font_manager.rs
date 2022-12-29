@@ -7,7 +7,7 @@ use std::collections::HashMap;
 use std::path::Path;
 
 use crate::{resource, Colour, Error, rect_conversion::RectConversion};
-use crate::{file_err, font_err, draw_err, unload_resource, load_resource, load_res_start};
+use crate::{file_err, font_err, draw_err, unload_resource, load};
 use geometry::*;
 
 struct ResourceTextDraw<'a> {
@@ -41,6 +41,8 @@ pub struct FontManager<'a, T> {
 }
 
 impl<'a, T: 'a> FontManager<'a, T> {
+
+     //load a ttf font face to memory and get a [resource::Font] object that references it
     pub(crate) fn new(ttf_context : &'a ttf::Sdl2TtfContext, texture_creator : &'a TextureCreator<T>) -> Self {
         FontManager {
             texture_creator,
@@ -52,18 +54,18 @@ impl<'a, T: 'a> FontManager<'a, T> {
     }
 
     pub fn load(&mut self, path : &Path) -> Result<resource::Font, Error>{
-        let font_index = load_res_start!(path, self.loaded_font_paths, self, load_font);
+        let font_index =
+            load!(path, self.fonts, self.loaded_font_paths, self.ttf_context, "Font", FONT_LOAD_SIZE);
         Ok(
             resource::Font {
             id: font_index,
         })
     }
+    
+    unload_resource!(///unloades the [resource::Font] stored by the sdl2 context, it can no longer be used
+       ,self, self.loaded_font_paths, self.fonts, font, resource::Font, "font");
 
-    load_resource!(load_font, self, self.fonts, self.loaded_font_paths, self.ttf_context, "font", FONT_LOAD_SIZE);
-
-    unload_resource!(self, self.loaded_font_paths, self.fonts, font, resource::Font, "font");
-
-    /// return a [resource::Text] that can be put into a [TextObject] to be passed to [Camera]
+    /// return a [resource::Text] that can be put into a 'TextObject' to be passed to 'Camera'
     pub fn get_text(&mut self, font: &resource::Font, text: &str, colour : Colour) -> Result<resource::Text, Error> {
         if self.fonts[font.id].is_none() {
             return Err(Error::MissingResource(String::from("Used a text with an unloaded font")));
@@ -81,8 +83,8 @@ impl<'a, T: 'a> FontManager<'a, T> {
         Ok(resource::Text { id: self.text_draws.len() - 1, width, height})
     }
 
-    /// frees the texture stored and associated with the [TextDraw].
-    /// The [TextDraw] must not be used after freeing
+    /// frees the texture stored and associated with the [resource::Text].
+    /// The [resource::Text] must not be used after freeing
     pub fn unload_text_draw(&mut self, text_draw: resource::Text) {
         self.text_draws[text_draw.id] = None;
     }

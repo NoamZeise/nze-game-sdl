@@ -16,7 +16,7 @@ pub struct Font {
     pub(crate) id : usize,
 }
 
-/// can be returned by [FontManager], stores a reference to a texture held by font_manager
+/// can be returned by 'FontManager' , stores a reference to a texture held by font_manager
 #[derive(Clone, Copy)]
 pub struct Text {
     pub(crate) id: usize,
