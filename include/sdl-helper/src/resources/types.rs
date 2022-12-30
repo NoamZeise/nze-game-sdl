@@ -38,7 +38,7 @@ impl Colour {
     }
 }
 
-/// used by 'Camera' for drawing calls
+/// used by `Camera` for drawing texures with texture rects and draw rects and a colour
 #[derive(Clone, Copy)]
 pub struct GameObject {
     texture: resource::Texture,
@@ -73,7 +73,7 @@ impl GameObject {
     }
 }
 
-
+/// used by `Camera` for drawing loaded font texts
 #[derive(Clone, Copy)]
 pub struct TextObject {
     pub(crate) texture: resource::Text,
