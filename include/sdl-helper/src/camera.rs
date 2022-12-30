@@ -13,7 +13,7 @@ use std::vec::Drain;
 ///
 /// # Notes:
 /// - passed to `Render` at the end of each frame in order to submit the draw commands
-/// - the rects are scaled according to the 'view size' which represents the target screen resolution
+/// - the rects are scaled according to the `view size` which represents the target screen resolution
 ///   and the `window size`, which represents the resolution of the game's window
 /// - the rects are moved according to camera's `offset`
 /// - The `parallax` of the draws will affect how much the camera's `offset` changes the object's position,
@@ -71,7 +71,7 @@ impl Camera {
         );
     }
 
-    /// Draws disposable text texture adjusted for the camera's `view`
+    /// Draws a disposable text texture adjusted for the camera's `view`
     pub fn draw_disposable_text(&mut self, font: &resource::Font, text: String, height: u32, pos: Vec2, colour: Colour, parallax: Vec2) {
         let rect = self.rect_to_cam_space(Rect::new(pos.x, pos.y, height as f64, height as f64), parallax);
         self.temp_text_draws.push(DisposableTextDraw {
@@ -83,7 +83,7 @@ impl Camera {
         })
     }
 
-    /// Draws [TextObject] adjusted by camera's `view` 
+    /// Draws a [TextObject] adjusted by camera's `view` 
     pub fn draw_text(&mut self, text_obj: &TextObject) {
         let rect = self.rect_to_cam_space(text_obj.rect, text_obj.parallax);
         self.perm_text_draws.push(TextDraw {

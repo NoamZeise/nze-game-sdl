@@ -38,7 +38,7 @@ impl ContextSdl {
         Ok((canvas, ContextSdl { sdl_context, _video_subsystem, _image_context, ttf_context, texture_creator}))
     }
 
-    /// enable text input so that the 'Control.input' get character function will return typed characters
+    /// enable text input so that the `Control.input` get character function will return typed characters
     pub fn set_text_input(&mut self, is_enabled: bool) {
         if is_enabled {
             self._video_subsystem.text_input().start();
@@ -47,13 +47,13 @@ impl ContextSdl {
         }
     }
 
-    /// return whether typing to keyboard is for text input is enabled
+    /// returns whether typing to keyboard for text input is enabled
     pub fn is_text_input_enabled(&self) -> bool {
         self._video_subsystem.text_input().is_active()
     }
 }
 
-/// Holds ownership of an sdl Canvas, this should be passed to [Render]
+/// Holds ownership of an sdl Canvas, this should be passed to `Render`
 pub struct DrawingArea {
     pub(crate) canvas: Canvas<Window>
 }
@@ -61,8 +61,8 @@ pub struct DrawingArea {
 impl DrawingArea {
     ///returns the [ContextSdl] of this instance of sdl2, as well as a [DrawingArea]
     ///
-    ///- 'cam_rect' the x,y part is the camera's offset the w,h is the target resolution of the drawing area
-    ///- 'window_size' the size of the OS window made, does not need to match 'cam_rect'
+    ///- `cam_rect` the `x`,`y` part is the camera's offset the `w`,`h` is the target resolution of the drawing area
+    ///- `window_size` the resolution of the window, does not need to match `cam_rect`
     pub fn new(window_name: &str, cam_rect: Rect, window_size: Vec2) -> Result<(Camera, DrawingArea,ContextSdl), Error> {
         let cam = Camera::new(cam_rect, window_size);
         let (mut canvas, holder) = ContextSdl::new(&cam, window_name)?;

@@ -3,7 +3,7 @@ use sdl2::pixels::Color;
 use crate::resource;
 
 
-/// An RGBA colour with values from 0-255 for each channel
+/// An RGBA colour with values from `0` to `255` for each channel
 #[derive(Clone, Copy)]
 pub struct Colour {
     pub r: u8,

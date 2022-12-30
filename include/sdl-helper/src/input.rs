@@ -6,10 +6,14 @@
 use geometry::Vec2;
 use sdl2::event::Event;
 use sdl2::EventPump;
-pub use sdl2::keyboard::Scancode as Key;
 use sdl2::mouse::MouseButton;
 
 use std::time::Instant;
+
+/// An enum of keyboard buttons used to index the array help by `KBMcontrols`
+///
+/// See `key!` macro in crate root for shorthand use of the key array
+pub use sdl2::keyboard::Scancode as Key;
 
 /// macros for getting key bool values with less repetition
 ///

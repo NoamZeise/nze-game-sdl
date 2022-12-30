@@ -21,9 +21,14 @@ pub struct Map {
 }
 
 impl Map {
+    /// Loads the tiled map at the path into memory and loads any resources referenced by the map
+    ///
+    /// Will throw a `LoadFile` error if there is an error loading the tiled map with `tiled`
+    ///
+    /// Will pass on any errors from loading resources 
     pub fn new<'sdl, TexType>(filename: &str, tex_manager : &'sdl mut TextureManager<TexType>, font_manager: &'sdl mut FontManager<TexType>) -> Result<Self, Error> {
         let mut map = Self {
-            tiled_map: tiled::Map::new(filename).unwrap(),
+            tiled_map: tiled::Map::new(filename).map_err(|e| { Error::LoadFile(format!("{:?}", e))})?,
             tiles: Vec::new(),
             layers: Vec::new(),
         };
@@ -43,6 +48,7 @@ impl Map {
         Ok(map)
     }
 
+    /// Draw the map to the camera's buffer, adjusted to the camera's offset and scale
     pub fn draw(&self, cam: &mut Camera) {
         for l in self.layers.iter() {
             l.draw(cam);

@@ -1,5 +1,5 @@
-//! contains an enum for reporting errors when using this library, so that the calling program can resport appropriately
 
+/// Used by the library for reporting errors, so that the calling program can respond appropriately
 #[derive(Debug)]
 pub enum Error {
     /// Some part of sdl failed to initilaize, this error is usually unrecoverable and indicates an issue with the environment or with missing library files

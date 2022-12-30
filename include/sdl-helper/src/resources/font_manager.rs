@@ -138,6 +138,7 @@ impl<'a, T: 'a> FontManager<'a, T> {
     
 }
 
+/// A helper function for getting a rect that has the same ratio as the dimensions, but scaled by the height value
 pub fn get_text_rect_from_height(dim: Vec2, pos: Vec2, height : f64) -> Rect {
     let ratio = dim.y / dim.x;
     Rect::new(
