@@ -1,4 +1,4 @@
-use sdl_helper::{Map, Camera, Colour, Render, DrawingArea, TextObject, error::Error, GameObject, input::Key, key};
+use sdl_helper::{Map, Camera, Colour, Render, DrawingArea, TextObject, Error, GameObject, input::Key, key};
 use geometry::*;
 
 use std::path::Path;
@@ -14,7 +14,7 @@ pub fn main() -> Result<(), Error> {
    
     let mono_font = render.font_manager.load(Path::new("textures/fonts/FiraCode-Light.ttf"))?;
 
-    let text = render.font_manager.load_text(&mono_font, "Hello Sdl2", Colour::white())?;
+    let text = render.font_manager.load_text(&mono_font, "Prerendered Texture", Colour::white())?;
     let text = TextObject::new(text,
                                sdl_helper::get_text_rect_from_height(
                                    Vec2::new(text.width as f64, text.height as f64),
@@ -129,7 +129,7 @@ fn update(render: &mut Render, cam: &mut Camera) -> Result<(), Error> {
     }
     
     if win_size_update {
-        render.set_win_size(cam, cs, false)?;
+        render.set_win_size(cam, cs, true)?;
     }
 
     if key!(input.down[Key::Escape]) {

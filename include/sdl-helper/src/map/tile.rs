@@ -1,5 +1,5 @@
 use crate::resource::Texture;
-use crate::Rect;
+use geometry::Rect;
 use crate::Error;
 
 #[derive(Clone)]

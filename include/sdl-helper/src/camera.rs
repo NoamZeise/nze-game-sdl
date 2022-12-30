@@ -1,5 +1,6 @@
 use geometry::*;
-use crate::{texture_manager::TextureDraw, font_manager::{DisposableTextDraw, TextDraw}, types::GameObject, Colour, resource, types::TextObject};
+use crate::resources::{texture_manager::TextureDraw, font_manager::{DisposableTextDraw, TextDraw}, types::GameObject, resource, types::TextObject};
+use crate::Colour;
 use std::vec::Drain;
 
 /// Used for drawing to the canvas.

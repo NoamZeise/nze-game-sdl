@@ -4,7 +4,7 @@ use sdl2::{image::LoadTexture, video::Window};
 use std::collections::HashMap;
 use std::path::Path;
 
-use crate::{resource, rect_conversion::RectConversion, types::Colour, error::Error, GameObject};
+use crate::{resource, rect_conversion::RectConversion, Colour, error::Error, GameObject};
 use crate::{unload_resource, load, file_err, draw_err, draw};
 use geometry::*;
 
