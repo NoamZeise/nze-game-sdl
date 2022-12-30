@@ -1,4 +1,7 @@
-//! processes sdl2 events and update structs that can be used to control the game
+//! Used to get input from the Keyboard and Mouse
+//!
+//! processes sdl2 events and update structs that can be used to control the game.
+//! `Control` is updated by render in `event_loop`
 
 use geometry::Vec2;
 use sdl2::event::Event;
@@ -8,7 +11,7 @@ use sdl2::mouse::MouseButton;
 
 use std::time::Instant;
 
-/// macros for getting key bools 
+/// macros for getting key bool values with less repetition
 ///
 /// # down
 ///
@@ -47,17 +50,20 @@ macro_rules! key {
 }
 
 /// Holds info on input state and frame elapsed time
-/// held and updated by 'Render' at the start of each frame
+/// held and updated by `Render` at the start of each frame
 #[derive(Copy, Clone)]
 pub struct Controls {
+    /// current frame input state
     pub input: KBMControls,
-    /// previous frame's input
+    /// previous frame input state
     pub prev_input: KBMControls,
     /// time in seconds between last frame and this one
     pub frame_elapsed: f64,
-    /// This value must be used by the user, it is set to true by the window controls,
-    /// this can also be used in your game loop to exit some other way, 
-    /// but must be checked in the game loop and broken by the user. 
+    /// This value must be checekd by the user, e.g. break the game loop when this is true
+    ///
+    /// This is set to true by the window controls when a window close signal is recieved.
+    ///
+    /// This can also be set to true in your game loop to exit due to some other condition. 
     pub should_close: bool,
     prev_time: Instant,
 }
@@ -107,65 +113,18 @@ impl Controls {
 pub struct Mouse {
     x : i32,
     y : i32,
-    /// The position of the mouse corrected by Camera, so that it is unaffected by Camera position or scale
+    /// The position of the mouse corrected by `Camera`, so that it is unaffected by it's offset or scale
     ///
-    /// The camera offset is done in 'Render.event_loop'
+    /// The camera offset correction is done during `Render.event_loop`
     pub pos: Vec2,
     /// the mouse scroll wheel
-    /// - '0'  if not scrolling
-    /// - '1'  if scrolling up
-    /// - '-1' if scrolling down
+    /// - `0`  if not scrolling
+    /// - `1`  if scrolling up
+    /// - `-1` if scrolling down
     pub wheel: i32,
     pub left_click : bool,
     pub middle_click: bool,
     pub right_click : bool,
-}
-
-impl Mouse {
-    fn new() -> Self {
-        Mouse {
-            x: 0,
-            y: 0,
-            pos: Vec2::new(0.0, 0.0),
-            wheel: 0,
-            left_click : false,
-            middle_click : false,
-            right_click : false,
-        }
-    }
-
-    pub fn handle_mouse(&mut self, event: &Event) {
-        let mut btn_down = false;
-        let btn = match event {
-            Event::MouseWheel { y, ..} => {
-                self.wheel = *y;
-                None
-            },
-            Event::MouseMotion { x, y, .. } => {
-                self.x = *x;
-                self.y = *y;
-                None
-            },
-            Event::MouseButtonDown { mouse_btn, ..} => {
-                btn_down = true;
-                Some(mouse_btn)
-            },
-            Event::MouseButtonUp { mouse_btn, .. } => {
-                btn_down = false;
-                Some(mouse_btn)
-            }
-            _ => None,
-        };
-        match btn {
-            Some(btn) => match btn {
-                MouseButton::Left => self.left_click = btn_down,
-                MouseButton::Middle => self.middle_click = btn_down,
-                MouseButton::Right => self.right_click = btn_down,
-                _ => (),
-            }
-            None => (),
-        }
-    }
 }
 
 /// Holds character typed that frame, and the state of some useful buttons for controls, as well as the mouse
@@ -173,6 +132,7 @@ impl Mouse {
 pub struct KBMControls {
     /// an array indexed by [Key] enums as usize
     pub keys : [bool; Key::Num as usize],
+    /// represents the mouse input state for this frame
     pub mouse : Mouse,
     character : Option<char>,
 }
@@ -196,11 +156,11 @@ impl KBMControls {
         }
     }
 
-    /// Get the last character typed by the keyboard in text input mode, or 'None' if nothing was typed
+    /// Get the last character typed by the keyboard in text input mode, or `None` if nothing was typed
     ///
-    /// Getting a character causes the current character to be set to None,
+    /// Getting a character causes the current character to be set to `None`,
     ///
-    /// To enable typing: use 'SdlContext.set_text_input' function.
+    /// To enable typing: use `SdlContext.set_text_input` function.
     pub fn get_typed_character(&mut self) -> Option<char> {
         match self.character {
             Some(c) => {
@@ -245,5 +205,51 @@ impl KBMControls {
             _ => None,
         }
     }
+}
 
+impl Mouse {
+    fn new() -> Self {
+        Mouse {
+            x: 0,
+            y: 0,
+            pos: Vec2::new(0.0, 0.0),
+            wheel: 0,
+            left_click : false,
+            middle_click : false,
+            right_click : false,
+        }
+    }
+
+    pub(crate) fn handle_mouse(&mut self, event: &Event) {
+        let mut btn_down = false;
+        let btn = match event {
+            Event::MouseWheel { y, ..} => {
+                self.wheel = *y;
+                None
+            },
+            Event::MouseMotion { x, y, .. } => {
+                self.x = *x;
+                self.y = *y;
+                None
+            },
+            Event::MouseButtonDown { mouse_btn, ..} => {
+                btn_down = true;
+                Some(mouse_btn)
+            },
+            Event::MouseButtonUp { mouse_btn, .. } => {
+                btn_down = false;
+                Some(mouse_btn)
+            }
+            _ => None,
+        };
+        match btn {
+            Some(btn) => match btn {
+                MouseButton::Left => self.left_click = btn_down,
+                MouseButton::Middle => self.middle_click = btn_down,
+                MouseButton::Right => self.right_click = btn_down,
+                _ => (),
+            }
+            None => (),
+        }
+    }
 }

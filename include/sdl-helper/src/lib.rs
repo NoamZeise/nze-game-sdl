@@ -151,7 +151,8 @@ impl<'sdl> Render<'sdl> {
     /// Update the game window to the new size, and change the [Camera] to the new resolution
     ///
     /// Chnages the resolution of the Sdl Canvas and centeres the window
-    pub fn set_win_size(&mut self, cam: &mut Camera, cs: Vec2) -> Result<(), Error> {
+    pub fn set_win_size(&mut self, cam: &mut Camera, cs: Vec2, keep_view_ratio: bool) -> Result<(), Error> {
+        // TODO keep view ratio true option
         cam.set_window_size(cs);
         match self.drawing_area.canvas.window_mut().set_size(cs.x as u32, cs.y as u32) {
             Err(_) => { return Err(Error::Sdl2ChangeState(String::from("failed to resize window")));},

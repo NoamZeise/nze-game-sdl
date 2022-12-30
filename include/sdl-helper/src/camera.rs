@@ -2,11 +2,21 @@ use geometry::*;
 use crate::{texture_manager::TextureDraw, font_manager::{DisposableTextDraw, TextDraw}, types::GameObject, Colour, resource, types::TextObject};
 use std::vec::Drain;
 
-/// holds buffered draw commands that render will consume at the end of each frame
+/// Used for drawing to the canvas.
 ///
-/// Note: need to pass this to 'Render' at the end of each frame in order to see the draws on the screen
+/// The window size and screen size and position are used to adjust the size of the rects sent as 
+/// draw commands to the sdl `Canvas`
 ///
-/// Note: set parallax to 0 if you want the object to be unaffected by the moving camera
+/// This holds buffered draw commands that render will consume at the end of each frame, so that the commands
+/// need to be resubmitted each frame they are to be drawn.
+///
+/// # Notes:
+/// - passed to `Render` at the end of each frame in order to submit the draw commands
+/// - the rects are scaled according to the 'view size' which represents the target screen resolution
+///   and the `window size`, which represents the resolution of the game's window
+/// - the rects are moved according to camera's `offset`
+/// - The `parallax` of the draws will affect how much the camera's `offset` changes the object's position,
+/// set `parallax` to 0 if you want the object to be unaffected by the moving camera
 pub struct Camera {
     rect: Rect,
     window_size: Vec2,
@@ -18,7 +28,7 @@ pub struct Camera {
 }
 
 impl Camera {
-    pub fn new(rect: Rect, window_size: Vec2) -> Camera {
+    pub(crate) fn new(rect: Rect, window_size: Vec2) -> Camera {
         let mut cam = Camera {
             rect,
             window_size,
@@ -48,7 +58,7 @@ impl Camera {
         self.rect_draws.drain(..)
     }
 
-    /// Draws a [GameObject] adjusted for the camera's position and scale
+    /// Draws a [GameObject] adjusted for the camera's `view`
     pub fn draw(&mut self, game_obj: &GameObject) {
         self.draws.push(
             TextureDraw::new(
@@ -60,7 +70,7 @@ impl Camera {
         );
     }
 
-    /// Draws text adjusted for the camera's position and scale
+    /// Draws disposable text texture adjusted for the camera's `view`
     pub fn draw_disposable_text(&mut self, font: &resource::Font, text: String, height: u32, pos: Vec2, colour: Colour, parallax: Vec2) {
         let rect = self.rect_to_cam_space(Rect::new(pos.x, pos.y, height as f64, height as f64), parallax);
         self.temp_text_draws.push(DisposableTextDraw {
@@ -72,6 +82,7 @@ impl Camera {
         })
     }
 
+    /// Draws [TextObject] adjusted by camera's `view` 
     pub fn draw_text(&mut self, text_obj: &TextObject) {
         let rect = self.rect_to_cam_space(text_obj.rect, text_obj.parallax);
         self.perm_text_draws.push(TextDraw {
@@ -81,42 +92,58 @@ impl Camera {
         })
     }
 
+    /// Draw a [Rect] with a [Colour] adjusted by the camera's `view` 
     pub fn draw_rect(&mut self, rect: Rect, colour: Colour) {
         self.rect_draws.push((rect, colour));
     }
 
+    /// Get the current view offset
     pub fn get_offset(&self) -> Vec2 {
         return Vec2::new(self.rect.x, self.rect.y);
     }
 
+    /// Set the camera's view offset
+    ///
+    /// The view offset will move all draws by the offset multiplied by the object's `parallax`
     pub fn set_offset(&mut self, offset: Vec2) {
         self.rect.x = offset.x;
         self.rect.y = offset.y;
     }
 
+    /// Get the current window size
+    ///
+    /// The window size is the resolution of the window drawn by the OS.
+    /// This must be set by using `render.set_win_size`.
     pub fn get_window_size(&self) -> Vec2 {
         self.window_size
     }
 
-    pub fn set_window_size(&mut self, size: Vec2) {
+    pub(crate) fn set_window_size(&mut self, size: Vec2) {
         self.window_size = size;
         self.update_size_ratio();
     }
 
+    /// Get the camera's view size
     pub fn get_view_size(&self) -> Vec2 {
         Vec2::new(self.rect.w, self.rect.h)
     }
+
+    /// Set the camera's view size
+    ///
+    /// The view size is the resolution of your game, which may be different from your window resolution
     pub fn set_view_size(&mut self, view: Vec2) {
         self.rect.w = view.x;
         self.rect.h = view.y;
         self.update_size_ratio();
     }
 
+    /// Get the current aspect ratio (the view width divided by the view height)
     pub fn aspect_ratio(&self) -> f64 {
         self.rect.w / self.rect.h
     }
 
-    pub fn window_to_cam_vec2(&self, pos: Vec2) -> Vec2 {
+    // Transform a pos from window space to cam space
+    pub(crate) fn window_to_cam_vec2(&self, pos: Vec2) -> Vec2 {
         (self.size_ratio * pos) + self.get_offset()
     }
 
