@@ -11,7 +11,7 @@ The src directory acts as an example template of how to use the crates
 
 ## Features
 
-* window creation and keyboard/mosue input
+* window creation and keyboard/mouse input
 * loading and drawing textures and fonts to the screen
 * loading and drawing [Tiled](https://www.mapeditor.org/) maps 
 * 2D camera for scaling and moving drawn textures and fonts
@@ -28,6 +28,8 @@ The src directory acts as an example template of how to use the crates
 
 ## TODO
 
-* input system should be customizable from outside library
 * audio loading and playback
+* Better resolution controls
+* Controller support
+
  
