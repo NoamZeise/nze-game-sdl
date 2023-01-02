@@ -13,12 +13,13 @@ struct ResourceTextDraw<'a> {
     rect : sdl2::rect::Rect,
 }
 
-pub struct DisposableTextDraw {
+pub(crate) struct DisposableTextDraw {
     pub font : resource::Font,
     pub text: String,
     pub height : u32,
     pub pos : Vec2,
-    pub colour : Colour, 
+    pub colour : Colour,
+    pub rect: Rect,
 }
 
 pub struct TextDraw {
@@ -115,16 +116,20 @@ impl<'a, T: 'a> FontManager<'a, T> {
     }
 
     /// draws the supplied text to the canvas in the supplied font at the given height and position
-    pub(crate) fn draw(&self, canvas : &mut Canvas<Window>, font : &resource::Font, text: &str, height : u32, pos : Vec2, colour : Color) -> Result<(), Error> {
+    pub(crate) fn draw(&self, canvas : &mut Canvas<Window>, font : &resource::Font, text: &str, height : u32, pos : Vec2, colour : Color, rect: Rect) -> Result<(), Error> {
         if text.len() == 0 { return Ok(()); }
         let mut tex_draw = self.get_draw(font, text, height, colour)?;
         tex_draw.rect.x = pos.x as i32;
         tex_draw.rect.y = pos.y as i32;
+        tex_draw.rect.h = rect.h as i32;
+        tex_draw.rect.w =
+            (tex_draw.rect.w as f64 *
+            (rect.w / height as f64)) as i32;
         Ok(draw_err!(canvas.copy(&tex_draw.tex, None, tex_draw.rect))?)
     }
 
     pub(crate) fn draw_disposable(&self, canvas: &mut Canvas<Window>, disposable: DisposableTextDraw) -> Result<(), Error> {
-        self.draw(canvas, &disposable.font, &disposable.text, disposable.height, disposable.pos, disposable.colour.to_sdl2_colour())
+        self.draw(canvas, &disposable.font, &disposable.text, disposable.height, disposable.pos, disposable.colour.to_sdl2_colour(), disposable.rect)
     }
 
     draw!{

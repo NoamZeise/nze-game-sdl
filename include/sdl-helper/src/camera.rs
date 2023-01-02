@@ -1,5 +1,5 @@
 use geometry::*;
-use crate::resources::{texture_manager::TextureDraw, font_manager::{DisposableTextDraw, TextDraw}, types::GameObject, resource, types::TextObject};
+use crate::{resources::{texture_manager::TextureDraw, font_manager::{DisposableTextDraw, TextDraw}, types::GameObject, resource, types::TextObject}, get_text_rect_from_height};
 use crate::Colour;
 use std::vec::Drain;
 
@@ -80,6 +80,7 @@ impl Camera {
             height: rect.h as u32,
             pos: rect.top_left(),
             colour,
+            rect,
         })
     }
 
@@ -155,7 +156,7 @@ impl Camera {
         );
     }
 
-    fn rect_to_cam_space(&self, rect: Rect, parallax: Vec2) -> Rect {
+    pub(crate) fn rect_to_cam_space(&self, rect: Rect, parallax: Vec2) -> Rect {
         Rect::new(
             ((rect.x) - (self.rect.x * parallax.x)) / self.size_ratio.x,
             ((rect.y) - (self.rect.y * parallax.y)) / self.size_ratio.y,
