@@ -1,5 +1,5 @@
 use geometry::*;
-use crate::{resources::{texture_manager::TextureDraw, font_manager::{DisposableTextDraw, TextDraw}, types::GameObject, resource, types::TextObject}, get_text_rect_from_height};
+use crate::resources::{texture_manager::TextureDraw, font_manager::{DisposableTextDraw, TextDraw}, types::GameObject, resource, types::TextObject};
 use crate::Colour;
 use std::vec::Drain;
 

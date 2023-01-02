@@ -15,7 +15,7 @@ pub use context::{ContextSdl, DrawingArea};
 pub use render::Render;
 pub use resources::resource;
 pub use resources::texture_manager::TextureManager;
-pub use resources::font_manager::{FontManager, get_text_rect_from_height};
+pub use resources::font_manager::FontManager;
 pub use resources::types::{Colour, GameObject, TextObject};
 
 pub use camera::Camera;

@@ -73,26 +73,27 @@ impl Layer {
             l.info.colour.a as u8
             );
         for t in l.text.iter() {
-            let font = font_manager.load(Path::new(&("textures/fonts/".to_string() + &t.font_family.replace(" ", "-") + ".ttf")))?;
-            let text = font_manager.load_text(&font, &t.text,
-                                             Colour::new(
-                                                 t.colour.r as u8,
-                                                 t.colour.g as u8,
-                                                 t.colour.b as u8,
-                                                 t.colour.a as u8
-                                             )
-            )?;
+            let font = font_manager.load_font(Path::new(&("textures/fonts/".to_string() + &t.font_family.replace(" ", "-") + ".ttf")))?;
+
             layer.text_draw.push(
-                TextObject::new(text,
-                                crate::get_text_rect_from_height(
-                                    Vec2::new(text.width as f64,
-                                              text.height as f64),
-                                    t.obj.rect.top_left(),
-                                    t.obj.rect.h),
-                                l.info.parallax,
-                                layer_colour
-            ));
-            }
+                font_manager.load_text_obj(
+                    &font,
+                    &t.text,
+                    layer_colour, //use layer colour to generate text texture
+                    t.obj.rect.top_left(),
+                    t.obj.rect.h,
+                    l.info.parallax
+                )?
+            );
+            // change the text draw's colour to the colour of the text object,
+            // so that the layer and text object colours are mixed
+            layer.text_draw.last_mut().unwrap().colour = Colour::new(
+                t.colour.r as u8,
+                t.colour.g as u8,
+                t.colour.b as u8,
+                t.colour.a as u8
+            );
+        }
         Ok(layer)
     }
 
