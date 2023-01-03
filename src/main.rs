@@ -13,16 +13,17 @@ pub fn main() -> Result<(), Error> {
     let mut render = Render::new(drawing_area, &context)?;
    
     let mono_font = render.font_manager.load_font(Path::new("textures/fonts/FiraCode-Light.ttf"))?;
-
-    let text = render.font_manager.load_text_obj(&mono_font, "Prerendered Text", Colour::new(200, 0, 0, 255),
-                                             Vec2::new(0.0, 0.0), 10.0, Vec2::new(0.0, 0.0))?;
-
+    
     let map = Map::new("test-resources/test.tmx", &mut render.texture_manager, &mut render.font_manager)?;
 
     //checking resource loading/unloading
     let mut is_gaia = true;
     let mut ephemeral_obj =
         GameObject::new_from_tex(render.texture_manager.load(Path::new("textures/gaia.png"))?);
+
+    let mut text = render.font_manager.load_text_obj(&mono_font, "The Planet Earth", Colour::new(100, 200, 70, 255),
+                                             Vec2::new(0.0, 0.0), 10.0, Vec2::new(0.0, 0.0))?;
+
 
     loop {
         update(&mut render, &mut cam)?;
@@ -33,12 +34,17 @@ pub fn main() -> Result<(), Error> {
         
         if key!(render.controls,pressed[Key::L]) {
             render.texture_manager.unload_from_gameobject(ephemeral_obj);
+            render.font_manager.unload_text_obj(text);
             if is_gaia {
                 ephemeral_obj = GameObject::new_from_tex(
                     render.texture_manager.load(Path::new("textures/error.png"))?);
+                text = render.font_manager.load_text_obj(&mono_font, "Error Text", Colour::new(200, 100, 70, 255),
+                                             Vec2::new(100.0, 0.0), 10.0, Vec2::new(0.0, 0.0))?;
             } else {
                 ephemeral_obj = GameObject::new_from_tex(
                     render.texture_manager.load(Path::new("textures/gaia.png"))?);
+                text = render.font_manager.load_text_obj(&mono_font, "The Planet Earth", Colour::new(100, 200, 70, 255),
+                                             Vec2::new(0.0, 0.0), 10.0, Vec2::new(0.0, 0.0))?;
             }
             is_gaia = !is_gaia;
         }

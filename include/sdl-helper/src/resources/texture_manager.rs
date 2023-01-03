@@ -65,12 +65,6 @@ impl<'a, T> TextureManager<'a, T> {
             textures : Vec::new(),
         }
     }
-    
-    pub(crate) fn draw_rect(&self, canvas : &mut Canvas<Window>, rect : &geometry::Rect, colour : Colour) -> Result<(), Error> {
-        canvas.set_draw_color(colour.to_sdl2_colour());
-        draw_err!(canvas.fill_rect(rect.to_sdl_rect()))?;
-        Ok(())
-    }
 
     draw!{
         fn draw(self, tex_draw : TextureDraw) (
@@ -79,5 +73,11 @@ impl<'a, T> TextureManager<'a, T> {
             tex_draw.colour,
             tex_draw.tex_rect.to_sdl_rect(),
             tex_draw.draw_rect.to_sdl_rect())
+    }
+    
+    pub(crate) fn draw_rect(&self, canvas : &mut Canvas<Window>, rect : &geometry::Rect, colour : Colour) -> Result<(), Error> {
+        canvas.set_draw_color(colour.to_sdl2_colour());
+        draw_err!(canvas.fill_rect(rect.to_sdl_rect()))?;
+        Ok(())
     }
 }

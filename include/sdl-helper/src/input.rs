@@ -112,25 +112,6 @@ impl Controls {
     }
 }
 
-/// Holds mouse input info
-#[derive(Copy, Clone)]
-pub struct Mouse {
-    x : i32,
-    y : i32,
-    /// The position of the mouse corrected by `Camera`, so that it is unaffected by it's offset or scale
-    ///
-    /// The camera offset correction is done during `Render.event_loop`
-    pub pos: Vec2,
-    /// the mouse scroll wheel
-    /// - `0`  if not scrolling
-    /// - `1`  if scrolling up
-    /// - `-1` if scrolling down
-    pub wheel: i32,
-    pub left_click : bool,
-    pub middle_click: bool,
-    pub right_click : bool,
-}
-
 /// Holds character typed that frame, and the state of some useful buttons for controls, as well as the mouse
 #[derive(Copy, Clone)]
 pub struct KBMControls {
@@ -209,6 +190,25 @@ impl KBMControls {
             _ => None,
         }
     }
+}
+
+/// Holds mouse input info
+#[derive(Copy, Clone)]
+pub struct Mouse {
+    x : i32,
+    y : i32,
+    /// The position of the mouse corrected by `Camera`, so that it is unaffected by it's offset or scale
+    ///
+    /// The camera offset correction is done during `Render.event_loop`
+    pub pos: Vec2,
+    /// the mouse scroll wheel
+    /// - `0`  if not scrolling
+    /// - `1`  if scrolling up
+    /// - `-1` if scrolling down
+    pub wheel: i32,
+    pub left_click : bool,
+    pub middle_click: bool,
+    pub right_click : bool,
 }
 
 impl Mouse {
