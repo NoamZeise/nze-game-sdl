@@ -1,4 +1,4 @@
-use sdl_helper::{Map, Camera, Colour, Render, DrawingArea, Error, GameObject, input::Key, key};
+use sdl_helper::{Map, Camera, Colour, Render, DrawingArea, Error, GameObject, input::{Key, Controls}, key};
 use geometry::*;
 
 use std::path::Path;
@@ -39,7 +39,8 @@ pub fn main() -> Result<(), Error> {
                 ephemeral_obj = GameObject::new_from_tex(
                     render.texture_manager.load(Path::new("textures/error.png"))?);
                 text = render.font_manager.load_text_obj(&mono_font, "Error Text", Colour::new(200, 100, 70, 255),
-                                             Vec2::new(100.0, 0.0), 10.0, Vec2::new(0.0, 0.0))?;
+                                                         Vec2::new(100.0, 0.0), 10.0, Vec2::new(0.0, 0.0))?;
+                text.parallax = Vec2::new(1.0, 1.0);
             } else {
                 ephemeral_obj = GameObject::new_from_tex(
                     render.texture_manager.load(Path::new("textures/gaia.png"))?);
@@ -82,6 +83,9 @@ fn update(render: &mut Render, cam: &mut Camera) -> Result<(), Error> {
     }
 
     pos.x += SPEED * input.mouse.wheel as f64 * prev_frame;
+
+    let v =  controller_vector(&render.controls) * SPEED * prev_frame;
+    pos = pos + v;
     
     cam.set_offset(pos);
     let mut win_size_update = false;
@@ -129,7 +133,7 @@ fn update(render: &mut Render, cam: &mut Camera) -> Result<(), Error> {
     }
     
     if win_size_update {
-        render.set_win_size(cam, cs, true)?;
+        render.set_win_size(cam, cs, false)?;
     }
 
     if key!(input.down[Key::Escape]) {
@@ -139,4 +143,13 @@ fn update(render: &mut Render, cam: &mut Camera) -> Result<(), Error> {
     render.event_loop(cam);
     
     Ok(())
+}
+
+fn controller_vector(controls: &Controls) -> Vec2 {
+    if controls.controllers.len() == 0 { return Vec2::new(0.0, 0.0); }
+    let mut v = controls.controllers[0].joy1;
+    const DEADZONE: f64 = 0.1; 
+    v.x = if v.x.abs() > DEADZONE { v.x } else { 0.0 };
+    v.y = if v.y.abs() > DEADZONE { v.y } else { 0.0 };
+    v 
 }

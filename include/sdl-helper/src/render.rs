@@ -21,7 +21,7 @@ impl<'sdl> Render<'sdl> {
         Ok(Render {
             texture_manager: TextureManager::new(&context.texture_creator),
             font_manager: FontManager::new(&context.ttf_context, &context.texture_creator),
-            controls: Controls::new(),
+            controls: Controls::new(context.sdl_context.game_controller().map_err(|e| { Error::Sdl2InitFailure(e.to_string())})?),
             event_pump: init_err!(context.sdl_context.event_pump())?,
             drawing_area,
         })
@@ -56,14 +56,21 @@ impl<'sdl> Render<'sdl> {
     /// This should be called at the start of update.
     pub fn event_loop(&mut self, cam: &mut Camera) {
         self.controls.update(&mut self.event_pump);
-        self.controls.input.mouse.pos = cam.window_to_cam_vec2(self.controls.input.mouse.pos);
+            self.controls.input.mouse.pos = cam.window_to_cam_vec2(
+                Vec2::new(self.controls.input.mouse.x as f64, self.controls.input.mouse.y as f64)
+            );
     }
 
     /// Update the game window to the new size, and change the [Camera] to the new resolution
     ///
     /// Chnages the resolution of the Sdl Canvas and centeres the window
     pub fn set_win_size(&mut self, cam: &mut Camera, cs: Vec2, keep_view_ratio: bool) -> Result<(), Error> {
-        // TODO keep view ratio true option
+        // TODO keep view ratio will add black bars instead of returning
+        if keep_view_ratio {
+            if cs.x / cs.y != cam.aspect_ratio() {
+                return Ok(());
+            }
+        }
         cam.set_window_size(cs);
         match self.drawing_area.canvas.window_mut().set_size(cs.x as u32, cs.y as u32) {
             Err(_) => { return Err(Error::Sdl2ChangeState(String::from("failed to resize window")));},
