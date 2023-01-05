@@ -9,13 +9,12 @@ use std::time::Instant;
 
 mod keyboard;
 mod mouse;
-mod controller;
+pub mod controller;
 pub mod macros;
 pub use keyboard::KeyboardAndMouse;
 pub use keyboard::Key;
 pub use mouse::Mouse;
-pub use controller::Controller;
-
+use controller::Controller;
 use controller::ControllerHandler;
 
 /// Holds info on input state and frame elapsed time
@@ -35,6 +34,7 @@ pub struct Controls {
     pub should_close: bool,
 
     pub controllers : Vec<Controller>,
+    pub prev_controllers: Vec<Controller>,
     controller_handler: ControllerHandler,
     prev_time: Instant,
 }
@@ -48,12 +48,14 @@ impl Controls {
             frame_elapsed: 0.0,
             prev_time: Instant::now(),
             controllers: Vec::new(),
+            prev_controllers: Vec::new(),
             should_close: false,
         }
     }
 
     pub(crate) fn update(&mut self, event_pump: &mut EventPump) {
         self.prev_input = self.input;
+        self.prev_controllers = self.controllers.clone();
         self.input.mouse.wheel = 0;
         for e in event_pump.poll_iter() {
             let win_ev = match &e {

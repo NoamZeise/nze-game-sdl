@@ -1,4 +1,4 @@
-use sdl_helper::{Map, Camera, Colour, Render, DrawingArea, Error, GameObject, input::{Key, Controls}, key};
+use sdl_helper::{Map, Camera, Colour, Render, DrawingArea, Error, GameObject, input::{Key, Controls, controller::ControllerButton}, key};
 use geometry::*;
 
 use std::path::Path;
@@ -32,7 +32,8 @@ pub fn main() -> Result<(), Error> {
             break;
         }
         
-        if key!(render.controls,pressed[Key::L]) {
+        if key!(render.controls,pressed[Key::L]) ||
+            (render.controls.controllers.len() != 0 && render.controls.controllers[0].button[ControllerButton::A as usize] && render.controls.prev_controllers.len() != 0 && !render.controls.prev_controllers[0].button[ControllerButton::A as usize]) {
             render.texture_manager.unload_from_gameobject(ephemeral_obj);
             render.font_manager.unload_text_obj(text);
             if is_gaia {
@@ -147,7 +148,7 @@ fn update(render: &mut Render, cam: &mut Camera) -> Result<(), Error> {
 
 fn controller_vector(controls: &Controls) -> Vec2 {
     if controls.controllers.len() == 0 { return Vec2::new(0.0, 0.0); }
-    let mut v = controls.controllers[0].joy1;
+    let mut v = controls.controllers[0].left_joy;
     const DEADZONE: f64 = 0.1; 
     v.x = if v.x.abs() > DEADZONE { v.x } else { 0.0 };
     v.y = if v.y.abs() > DEADZONE { v.y } else { 0.0 };

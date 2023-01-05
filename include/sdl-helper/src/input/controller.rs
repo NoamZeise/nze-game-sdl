@@ -4,8 +4,9 @@ use geometry::Vec2;
 use sdl2::event::Event;
 use sdl2::GameControllerSubsystem;
 use sdl2::controller::GameController as sdlController;
-
 use sdl2::controller::Axis;
+
+pub use sdl2::controller::Button as ControllerButton;
 
 pub(crate) struct ControllerHandler {
     controller_subsystem: GameControllerSubsystem,
@@ -41,8 +42,23 @@ impl ControllerHandler {
             
             Event::ControllerAxisMotion { which, axis, value, .. } => {
                 println!("id: {} axis: {:?} value: {}", which, axis, value);
-                println!("axis: {}", self.controllers[which].axis(*axis));
-                
+            }
+            Event::ControllerButtonDown { which, button, .. } =>
+            {
+                println!("down:  id: {} button: {:?}", which, button);
+                for c in controllers.iter_mut() {
+                    if c.id == *which {
+                        c.button[*button as usize] = true;
+                    }
+                }
+            }
+            Event::ControllerButtonUp { which, button, .. } => {
+                println!("up:  id: {} button: {:?}", which, button);
+                for c in controllers.iter_mut() {
+                    if c.id == *which {
+                        c.button[*button as usize] = false;
+                    }
+                }
             }
             _ => (),
         }
@@ -53,18 +69,31 @@ impl ControllerHandler {
             c.update(&self.controllers[&c.id]);
         }
     }
+
+    fn _change_controller_mapping_text(&mut self, id: &u32, button_name: &str, button_code: &str) {
+        let mut  mapping = self.controllers[id].mapping();
+        let i = mapping.find(button_name).unwrap();
+        mapping = mapping[0..i].to_string() + button_name + ":" + button_code + "," + mapping[i..].split_once(",").unwrap().1;
+        self.controller_subsystem.add_mapping(&mapping).unwrap();
+    }
 }
 
 #[derive(Clone, Copy)]
 pub struct Controller {
     id: u32,
-    pub joy1: Vec2,
-    pub joy2: Vec2,
+    pub left_joy: Vec2,
+    pub right_joy: Vec2,
+    pub button: [bool; ControllerButton::DPadRight as usize + 1],
 }
 
 impl Controller {
     pub fn new(id: u32) -> Controller {
-        Controller { id, joy1: Vec2::new(0.0, 0.0), joy2: Vec2::new(0.0, 0.0) }
+        Controller {
+            id,
+            left_joy: Vec2::new(0.0, 0.0),
+            right_joy: Vec2::new(0.0, 0.0),
+            button: [false; ControllerButton::DPadRight as usize + 1],
+        }
     }
 
     fn update(&mut self, sdl_c: &sdlController) {
@@ -72,11 +101,11 @@ impl Controller {
     }
 
     fn update_axis(&mut self, sdl_c: &sdlController) {
-        self.joy1 = Vec2::new(
+        self.left_joy = Vec2::new(
                 sdl_c.axis(Axis::LeftX) as f64 / i16::MAX as f64,
                 sdl_c.axis(Axis::LeftY) as f64 / i16::MAX as f64,
             );
-        self.joy2 = Vec2::new(
+        self.right_joy = Vec2::new(
             sdl_c.axis(Axis::RightX) as f64 / i16::MAX as f64,
             sdl_c.axis(Axis::RightY) as f64 / i16::MAX as f64,
         )
