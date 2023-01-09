@@ -3,15 +3,21 @@
 /// See `key!` macro in crate root for shorthand use of the key array
 pub use sdl2::keyboard::Scancode as Key;
 
+pub enum MouseButton {
+    Left,
+    Right,
+    Middle,
+}
+
 use sdl2::event::Event;
 
-use super::Mouse;
+use super::mouse::Mouse;
 
 /// Holds the input state for a frame of event updates
 ///
 /// Holds keyboard and mouse state
 #[derive(Copy, Clone)]
-pub struct KeyboardAndMouse {
+pub(crate) struct KeyboardAndMouse {
     /// an array indexed by [Key] enums as usize
     pub keys : [bool; Key::Num as usize],
     /// represents the mouse input state for this frame
@@ -38,12 +44,7 @@ impl KeyboardAndMouse {
         } 
     }
 
-    /// Get the last character typed by the keyboard in text input mode, or `None` if nothing was typed
-    ///
-    /// Getting a character causes the current character to be set to `None`,
-    ///
-    /// To enable typing: use `SdlContext.set_text_input` function.
-    pub fn get_typed_character(&mut self) -> Option<char> {
+    pub(crate) fn get_typed_character(&mut self) -> Option<char> {
         match self.character {
             Some(c) => {
                 self.character = None;

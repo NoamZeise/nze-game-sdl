@@ -2,28 +2,25 @@
 //!
 //! processes sdl2 events and update structs that can be used to control the game.
 //! `Control` is updated by render in `event_loop`
-
 use sdl2::EventPump;
 use sdl2::GameControllerSubsystem;
 use std::time::Instant;
 
-mod keyboard;
 mod mouse;
 pub mod controller;
-pub mod macros;
-pub use keyboard::KeyboardAndMouse;
-pub use keyboard::Key;
-pub use mouse::Mouse;
+pub mod keyboard;
+pub mod keyboard_mouse;
 use controller::Controller;
 use controller::ControllerHandler;
+use keyboard::KeyboardAndMouse;
+
+use self::keyboard_mouse::KBM;
 
 /// Holds info on input state and frame elapsed time
 /// held and updated by `Render` at the start of each frame
 pub struct Controls {
-    /// current frame input state
-    pub input: KeyboardAndMouse,
-    /// previous frame input state
-    pub prev_input: KeyboardAndMouse,
+    /// current keyboard and mouse state
+    pub kbm: KBM,
     /// time in seconds between last frame and this one
     pub frame_elapsed: f64,
     /// This value must be checekd by the user, e.g. break the game loop when this is true
@@ -42,8 +39,7 @@ pub struct Controls {
 impl Controls {
     pub(crate) fn new(gcs: GameControllerSubsystem) -> Controls {
         Controls {
-            input: KeyboardAndMouse::new(),
-            prev_input: KeyboardAndMouse::new(),
+            kbm: KBM::new(),
             controller_handler: ControllerHandler::new(gcs),
             frame_elapsed: 0.0,
             prev_time: Instant::now(),
@@ -54,9 +50,8 @@ impl Controls {
     }
 
     pub(crate) fn update(&mut self, event_pump: &mut EventPump) {
-        self.prev_input = self.input;
         self.prev_controllers = self.controllers.clone();
-        self.input.mouse.wheel = 0;
+        self.kbm.update();
         for e in event_pump.poll_iter() {
             let win_ev = match &e {
                 sdl2::event::Event::Window {
@@ -71,7 +66,7 @@ impl Controls {
                 Some(w) => match w {sdl2::event::WindowEvent::Close => { self.should_close = true; }, _ => ()},
                 _ => ()
             }
-            self.input.handle_event(&e);
+            self.kbm.handle_event(&e);
             self.controller_handler.handle_event(&e, &mut self.controllers);
         }
         self.controller_handler.update_controller_state(&mut self.controllers);

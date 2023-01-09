@@ -56,8 +56,8 @@ impl<'sdl> Render<'sdl> {
     /// This should be called at the start of update.
     pub fn event_loop(&mut self, cam: &mut Camera) {
         self.controls.update(&mut self.event_pump);
-            self.controls.input.mouse.pos = cam.window_to_cam_vec2(
-                Vec2::new(self.controls.input.mouse.x as f64, self.controls.input.mouse.y as f64)
+            self.controls.kbm.input.mouse.pos = cam.window_to_cam_vec2(
+                Vec2::new(self.controls.kbm.input.mouse.x as f64, self.controls.kbm.input.mouse.y as f64)
             );
     }
 

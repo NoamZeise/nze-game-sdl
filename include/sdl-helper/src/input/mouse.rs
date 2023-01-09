@@ -5,17 +5,10 @@ use geometry::Vec2;
 
 /// Holds mouse input info
 #[derive(Copy, Clone)]
-pub struct Mouse {
-    pub(crate) x : i32,
-    pub(crate) y : i32,
-    /// The position of the mouse corrected by `Camera`, so that it is unaffected by it's offset or scale
-    ///
-    /// The camera offset correction is done during `Render.event_loop`
+pub(crate) struct Mouse {
+    pub x : i32,
+    pub y : i32,
     pub pos: Vec2,
-    /// the mouse scroll wheel
-    /// - `0`  if not scrolling
-    /// - `1`  if scrolling up
-    /// - `-1` if scrolling down
     pub wheel: i32,
     pub left_click : bool,
     pub middle_click: bool,
