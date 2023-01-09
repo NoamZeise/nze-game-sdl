@@ -78,4 +78,27 @@ impl Controls {
         self.frame_elapsed = self.prev_time.elapsed().as_secs_f64();
         self.prev_time = Instant::now();
     }
+
+    /// returns the number of currently connected controllers
+    pub fn controller_count(&self) -> usize {
+        self.controllers.len()
+    }
+
+    /// returns true if the button is being held down
+    ///
+    /// will return false if the controller index is out of range
+    pub fn controller_held(&self, index: usize, button: controller::Button) -> bool {
+        if index >= self.controllers.len() { return false; }
+        self.controllers[index].button[button as usize]
+    }
+
+    /// returns true if the controller button as just been pressed
+    ///
+    /// will return false if the controller index is out of range
+    pub fn controller_pressed(&self, index: usize, button: controller::Button) -> bool {
+        if index >= self.controllers.len() { return false; }
+        if index >= self.prev_controllers.len() { return self.controllers[index].button[button as usize] }
+        self.controllers[index].button[button as usize] &&
+        !self.prev_controllers[index].button[button as usize]
+    }
 }

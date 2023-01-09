@@ -6,7 +6,7 @@ use sdl2::GameControllerSubsystem;
 use sdl2::controller::GameController as sdlController;
 use sdl2::controller::Axis;
 
-pub use sdl2::controller::Button as ControllerButton;
+pub use sdl2::controller::Button as Button;
 
 pub(crate) struct ControllerHandler {
     controller_subsystem: GameControllerSubsystem,
@@ -83,7 +83,7 @@ pub struct Controller {
     id: u32,
     pub left_joy: Vec2,
     pub right_joy: Vec2,
-    pub button: [bool; ControllerButton::DPadRight as usize + 1],
+    pub button: [bool; Button::DPadRight as usize + 1],
 }
 
 impl Controller {
@@ -92,7 +92,7 @@ impl Controller {
             id,
             left_joy: Vec2::new(0.0, 0.0),
             right_joy: Vec2::new(0.0, 0.0),
-            button: [false; ControllerButton::DPadRight as usize + 1],
+            button: [false; Button::DPadRight as usize + 1],
         }
     }
 

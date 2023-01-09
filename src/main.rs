@@ -1,4 +1,4 @@
-use sdl_helper::{Map, Camera, Colour, Render, DrawingArea, Error, GameObject, input::{Key, Controls, controller::ControllerButton}, key};
+use sdl_helper::{Map, Camera, Colour, Render, DrawingArea, Error, GameObject, input::{Key, Controls, controller}, key};
 use geometry::*;
 
 use std::path::Path;
@@ -32,8 +32,7 @@ pub fn main() -> Result<(), Error> {
             break;
         }
         
-        if key!(render.controls,pressed[Key::L]) ||
-            (render.controls.controllers.len() != 0 && render.controls.controllers[0].button[ControllerButton::A as usize] && render.controls.prev_controllers.len() != 0 && !render.controls.prev_controllers[0].button[ControllerButton::A as usize]) {
+        if key!(render.controls,pressed[Key::L]) || render.controls.controller_pressed(0, controller::Button::A) {
             render.texture_manager.unload_from_gameobject(ephemeral_obj);
             render.font_manager.unload_text_obj(text);
             if is_gaia {
