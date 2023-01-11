@@ -30,7 +30,7 @@ pub(crate) struct DisposableTextDraw {
 
 const FONT_LOAD_SIZE : u16 = 128;
 
-/// Stores 'sdl2::ttf::Font's and returns resources that represent loaded resources to fonts or text textures
+/// Stores `sdl2::ttf::Font`s and returns resources that represent loaded resources to fonts or text textures
 pub struct FontManager<'a, T> {
     texture_creator : &'a TextureCreator<T>,
     ttf_context: &'a ttf::Sdl2TtfContext,

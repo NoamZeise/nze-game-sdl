@@ -1,4 +1,4 @@
-use sdl_helper::{Map, Camera, Colour, Render, DrawingArea, Error, GameObject, input::{keyboard::Key, Controls, controller}};
+use sdl_helper::{Map, Camera, Colour, Render, DrawingArea, Error, GameObject, input::{keyboard::Key, controller}};
 use geometry::*;
 
 use std::path::Path;
@@ -31,11 +31,8 @@ pub fn main() -> Result<(), Error> {
     loop {
         update(&mut render, &mut cam)?;
 
-        if render.controls.should_close {
-            break;
-        }
-        
-        if render.controls.kbm.down(Key::L) || render.controls.controller_pressed(0, controller::Button::A) {
+        // load/unload resources
+        if render.controls.kbm.down(Key::L) || render.controls.controller_press(0, controller::Button::A) {
             render.texture_manager.unload_from_gameobject(ephemeral_obj);
             render.font_manager.unload_text_obj(text);
             if is_gaia {
@@ -61,6 +58,10 @@ pub fn main() -> Result<(), Error> {
         cam.draw(&ephemeral_obj);
         
         render.end_draw(&mut cam)?;
+        
+        if render.controls.should_close {
+            break;
+        }
     }
 
     Ok(())
@@ -86,7 +87,7 @@ fn update(render: &mut Render, cam: &mut Camera) -> Result<(), Error> {
 
     pos.x += SPEED * render.controls.kbm.mouse_wheel() as f64 * prev_frame;
 
-    let v =  controller_vector(&render.controls) * SPEED * prev_frame;
+    let v =  render.controls.controller_joy(0, controller::Side::Left) * SPEED * prev_frame;
     pos = pos + v;
     
     cam.set_offset(pos);
@@ -145,13 +146,4 @@ fn update(render: &mut Render, cam: &mut Camera) -> Result<(), Error> {
     render.event_loop(cam);
     
     Ok(())
-}
-
-fn controller_vector(controls: &Controls) -> Vec2 {
-    if controls.controllers.len() == 0 { return Vec2::new(0.0, 0.0); }
-    let mut v = controls.controllers[0].left_joy;
-    const DEADZONE: f64 = 0.1; 
-    v.x = if v.x.abs() > DEADZONE { v.x } else { 0.0 };
-    v.y = if v.y.abs() > DEADZONE { v.y } else { 0.0 };
-    v 
 }

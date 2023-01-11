@@ -1,3 +1,5 @@
+//! Holds some enums that can be used to query controller state quing `Control`
+
 use std::collections::HashMap;
 
 use geometry::Vec2;
@@ -6,7 +8,14 @@ use sdl2::GameControllerSubsystem;
 use sdl2::controller::GameController as sdlController;
 use sdl2::controller::Axis;
 
+/// represents each of the buttons on a standart xInput controller
 pub use sdl2::controller::Button as Button;
+
+/// represents each side of the controls, eg left joystick/trigger and right joystick/trigger
+pub enum Side {
+    Left,
+    Right,
+}
 
 pub(crate) struct ControllerHandler {
     controller_subsystem: GameControllerSubsystem,
@@ -79,10 +88,12 @@ impl ControllerHandler {
 }
 
 #[derive(Clone, Copy)]
-pub struct Controller {
+pub(super) struct Controller {
     id: u32,
     pub left_joy: Vec2,
     pub right_joy: Vec2,
+    pub left_trigger: f64,
+    pub right_trigger: f64,
     pub button: [bool; Button::DPadRight as usize + 1],
 }
 
@@ -92,6 +103,8 @@ impl Controller {
             id,
             left_joy: Vec2::new(0.0, 0.0),
             right_joy: Vec2::new(0.0, 0.0),
+            left_trigger: 0.0,
+            right_trigger: 0.0,
             button: [false; Button::DPadRight as usize + 1],
         }
     }
@@ -102,12 +115,19 @@ impl Controller {
 
     fn update_axis(&mut self, sdl_c: &sdlController) {
         self.left_joy = Vec2::new(
-                sdl_c.axis(Axis::LeftX) as f64 / i16::MAX as f64,
-                sdl_c.axis(Axis::LeftY) as f64 / i16::MAX as f64,
+                i16_to_percent(sdl_c.axis(Axis::LeftX)),
+                i16_to_percent(sdl_c.axis(Axis::LeftY))
             );
         self.right_joy = Vec2::new(
-            sdl_c.axis(Axis::RightX) as f64 / i16::MAX as f64,
-            sdl_c.axis(Axis::RightY) as f64 / i16::MAX as f64,
-        )
+            i16_to_percent(sdl_c.axis(Axis::RightX)),
+            i16_to_percent(sdl_c.axis(Axis::RightY))
+        );
+        self.right_trigger = i16_to_percent(sdl_c.axis(Axis::TriggerRight));
+        self.left_trigger = i16_to_percent(sdl_c.axis(Axis::TriggerRight));
     }
 }
+
+fn i16_to_percent(val: i16) -> f64 {
+    val as f64 / i16::MAX as f64
+}
+

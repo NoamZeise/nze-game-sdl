@@ -2,6 +2,7 @@
 //!
 //! processes sdl2 events and update structs that can be used to control the game.
 //! `Control` is updated by render in `event_loop`
+use geometry::Vec2;
 use sdl2::EventPump;
 use sdl2::GameControllerSubsystem;
 use std::time::Instant;
@@ -9,12 +10,9 @@ use std::time::Instant;
 mod mouse;
 pub mod controller;
 pub mod keyboard;
-pub mod keyboard_mouse;
 use controller::Controller;
 use controller::ControllerHandler;
-use keyboard::KeyboardAndMouse;
-
-use self::keyboard_mouse::KBM;
+use keyboard::KBM;
 
 /// Holds info on input state and frame elapsed time
 /// held and updated by `Render` at the start of each frame
@@ -29,9 +27,11 @@ pub struct Controls {
     ///
     /// This can also be set to true in your game loop to exit due to some other condition. 
     pub should_close: bool,
+    /// update this value to change the deadzones of the controller axes
+    pub axis_deadzone: f64,
 
-    pub controllers : Vec<Controller>,
-    pub prev_controllers: Vec<Controller>,
+    controllers : Vec<Controller>,
+    prev_controllers: Vec<Controller>,
     controller_handler: ControllerHandler,
     prev_time: Instant,
 }
@@ -44,6 +44,7 @@ impl Controls {
             frame_elapsed: 0.0,
             prev_time: Instant::now(),
             controllers: Vec::new(),
+            axis_deadzone: 0.1,
             prev_controllers: Vec::new(),
             should_close: false,
         }
@@ -82,7 +83,7 @@ impl Controls {
     /// returns true if the button is being held down
     ///
     /// will return false if the controller index is out of range
-    pub fn controller_held(&self, index: usize, button: controller::Button) -> bool {
+    pub fn controller_hold(&self, index: usize, button: controller::Button) -> bool {
         if index >= self.controllers.len() { return false; }
         self.controllers[index].button[button as usize]
     }
@@ -90,10 +91,57 @@ impl Controls {
     /// returns true if the controller button as just been pressed
     ///
     /// will return false if the controller index is out of range
-    pub fn controller_pressed(&self, index: usize, button: controller::Button) -> bool {
+    pub fn controller_press(&self, index: usize, button: controller::Button) -> bool {
         if index >= self.controllers.len() { return false; }
         if index >= self.prev_controllers.len() { return self.controllers[index].button[button as usize] }
         self.controllers[index].button[button as usize] &&
         !self.prev_controllers[index].button[button as usize]
     }
+
+    /// get a 2d vector representing the direction of the joystick. each direction ranges from `0.0` to `1.0`
+    ///
+    /// retuns `0.0` if the controller isn't connected
+    ///
+    /// use [controller::Side] left and right to get the state of the two joysticks
+    ///
+    /// the `self.axis_deadzone` member of `Control` is automatically applied to the joystick values
+    pub fn controller_joy(&self, index: usize, joy: controller::Side) -> Vec2 {
+        if index >= self.controllers.len() { return Vec2::new(0.0, 0.0); }
+        match joy {
+            controller::Side::Left => vec_deadzone(
+                self.controllers[index].left_joy, Vec2::new(self.axis_deadzone, self.axis_deadzone)
+            ),
+            controller::Side::Right => vec_deadzone(
+                self.controllers[index].right_joy, Vec2::new(self.axis_deadzone, self.axis_deadzone)
+            ),
+        }
+    }
+
+    /// get a float representing the amount of travel the analogue trigger has gone through.
+    ///
+    /// values range from `0.0` to `1.0`
+    ///
+    /// returns `0.0` if the controller isn't connected
+    ///
+    /// the `side` parameter will give you the left or right analogue trigger
+    ///
+    /// the `self.axis_deadzone` member of `Control` is automatically applied to the trigger values
+    pub fn controller_trigger(&self, index: usize, side: controller::Side) -> f64 {
+        if index >= self.controllers.len() { return 0.0; }
+        match side {
+            controller::Side::Left => deadzone(self.controllers[index].left_trigger, self.axis_deadzone),
+            controller::Side::Right => deadzone(self.controllers[index].right_trigger, self.axis_deadzone),
+        }
+    }
+}
+
+fn deadzone(val:f64,dz:f64) -> f64 {
+    if val.abs() > dz { val } else { 0.0 }
+}
+
+fn vec_deadzone(v:Vec2, dz:Vec2) -> Vec2 {
+    let mut  n_v = v;
+    n_v.x = deadzone(v.x, dz.x);
+    n_v.y = deadzone(v.y, dz.y);
+    n_v
 }
