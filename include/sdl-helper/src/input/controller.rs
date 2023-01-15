@@ -49,12 +49,12 @@ impl ControllerHandler {
                 controllers.retain(|c| c.id != *which);
             },
             
-            Event::ControllerAxisMotion { which, axis, value, .. } => {
+            /*Event::ControllerAxisMotion { which, axis, value, .. } => {
                 println!("id: {} axis: {:?} value: {}", which, axis, value);
-            }
+            }*/
             Event::ControllerButtonDown { which, button, .. } =>
             {
-                println!("down:  id: {} button: {:?}", which, button);
+                //println!("down:  id: {} button: {:?}", which, button);
                 for c in controllers.iter_mut() {
                     if c.id == *which {
                         c.button[*button as usize] = true;
@@ -62,7 +62,7 @@ impl ControllerHandler {
                 }
             }
             Event::ControllerButtonUp { which, button, .. } => {
-                println!("up:  id: {} button: {:?}", which, button);
+                //println!("up:  id: {} button: {:?}", which, button);
                 for c in controllers.iter_mut() {
                     if c.id == *which {
                         c.button[*button as usize] = false;
@@ -87,6 +87,8 @@ impl ControllerHandler {
     }
 }
 
+const CONTROLLER_BTN_MAX : usize = Button::Touchpad as usize + 1;
+
 #[derive(Clone, Copy)]
 pub(super) struct Controller {
     id: u32,
@@ -94,7 +96,7 @@ pub(super) struct Controller {
     pub right_joy: Vec2,
     pub left_trigger: f64,
     pub right_trigger: f64,
-    pub button: [bool; Button::DPadRight as usize + 1],
+    pub button: [bool; CONTROLLER_BTN_MAX],
 }
 
 impl Controller {
@@ -105,7 +107,7 @@ impl Controller {
             right_joy: Vec2::new(0.0, 0.0),
             left_trigger: 0.0,
             right_trigger: 0.0,
-            button: [false; Button::DPadRight as usize + 1],
+            button: [false; CONTROLLER_BTN_MAX],
         }
     }
 
