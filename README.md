@@ -2,7 +2,7 @@
 
 This framework is made out of three crates in the include directory:
 
-* sdl_helper - for hiding the implimentation details of sdl2 in rust, and some helper functions for game development
+* sdl_helper - for hiding the implementation details of sdl2 in rust, and some helper functions for game development
 * tiled - for loading Tiled maps
 * geometry - for rectangle and vector maths
 
@@ -30,6 +30,5 @@ The src directory acts as an example template of how to use the crates
 
 * audio loading and playback
 * Better resolution controls
-* Controller support
 
  
