@@ -2,7 +2,7 @@
 #[macro_export]
 macro_rules! init_err {
      ($expression:expr)  => {
-	 $expression.map_err(|e| {Error::Sdl2InitFailure(e.to_string())})
+	 $expression.map_err(|e| {Error::Sdl2InitFailure("error initialising a part of sdl. sdl error: ".to_string() + &e.to_string())})
     };
 }
 

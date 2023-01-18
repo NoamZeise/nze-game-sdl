@@ -23,3 +23,15 @@ pub struct Text {
     pub width: u32,
     pub height: u32,
 }
+
+/// can be returned by 'AudioManager', links to a sound effect held by the manager
+#[derive(Clone, Copy)]
+pub struct SoundEffect {
+    pub(crate) id: usize,
+}
+
+/// can be returned by 'AudioManager', links to a music held by the manager
+#[derive(Clone, Copy)]
+pub struct Music {
+    pub(crate) id: usize,
+}

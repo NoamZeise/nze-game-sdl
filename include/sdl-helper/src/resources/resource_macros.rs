@@ -13,13 +13,30 @@ macro_rules! draw {
             $draw_rect:expr)) => { // draw rect
         
         pub(crate) fn $fn_name(&mut $self, canvas: &mut Canvas<Window>, $draw:$draw_type) -> Result<(), Error> {
-	match &mut $res_list[$id] {
-            Some(t) => {
+            $crate::use_resource!($res_list, $id, Some(t) => {
                 t.set_color_mod($col.r, $col.g, $col.b);
                 t.set_alpha_mod($col.a);
                 Ok(draw_err!(canvas.copy(&t, $text_rect, $draw_rect))?)
-            },
-            None => Err(Error::MissingResource("rescource used after free".to_string())),
+            } )
+        }
+    };
+}
+
+#[doc(hidden)]
+#[macro_export]
+macro_rules! use_resource {
+    (
+        $res_list:expr,
+        $id:expr,
+        $pattern:pat => $draw_block:block
+    ) => { {
+        let ret_error = Err(Error::MissingResource("resource used after unloading".to_string()));
+        if $res_list.len() <= $id {
+            return ret_error;
+        }
+        match &mut $res_list[$id] {
+            $pattern => $draw_block,
+            None => ret_error,
         }
     }
     };
@@ -35,25 +52,27 @@ macro_rules! load {
     // res_name       - text name of resource type
     // font_size      - size of font for font_loader 
     ($path:ident, $res_list: expr, $res_paths:expr, $res_creator_fn:expr, $res_name: expr) => { {
-	$crate::__load_shape!($path, $res_list, $res_paths, $res_name, Some(file_err!($res_creator_fn.load_texture($path))?))
+	$crate::load_resource!($path, $res_list, $res_paths, $res_name, Some(file_err!($res_creator_fn.load_texture($path))?))
     }};
     ($path:ident, $res_list: expr, $res_paths:expr, $res_creator_fn:expr, $res_name: expr, $font_size:expr) => { {
-	$crate::__load_shape!($path, $res_list, $res_paths, $res_name, Some(file_err!($res_creator_fn.load_font($path, $font_size))?))
+	$crate::load_resource!($path, $res_list, $res_paths, $res_name, Some(file_err!($res_creator_fn.load_font($path, $font_size))?))
     }};
 }
 
 #[doc(hidden)]
 #[macro_export]
 macro_rules! unload_resource{
+    // a doc comment
+    // fn       - name of unload function
     // s        - self
     // path_map - hashmap of string, resource id
     // res_list - list of resources
     // res      - a resource to unload
     // res_type - type of resource
     // name     - name of the resource type
-    ($(#[$($attrss:tt)*])*, $s:ident, $path_map:expr, $res_list:expr, $res:ident, $res_type:ty , $name:expr) => {
+    ($(#[$($attrss:tt)*])*, $fn:ident, $s:ident, $path_map:expr, $res_list:expr, $res:ident, $res_type:ty , $name:expr) => {
         $(#[$($attrss)*])*
-        pub fn unload(&mut $s, $res: $res_type) {
+        pub fn $fn(&mut $s, $res: $res_type) {
 	    let mut loaded_path : Option<String> = None;
             for (k, v) in $path_map.iter() {
                 if *v == $res.id {
@@ -122,7 +141,7 @@ macro_rules! load_resource_helper {
 // helper for load!
 #[doc(hidden)]
 #[macro_export]
-macro_rules! __load_shape {
+macro_rules! load_resource {
     ($path:ident, $res_list: expr, $res_paths:expr, $res_name: expr, $tex:expr) => { {
 	let path_as_string = $path.to_string_lossy().to_string();
         match $res_paths.contains_key(&path_as_string) {

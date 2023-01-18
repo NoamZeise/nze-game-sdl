@@ -1,4 +1,4 @@
-use sdl2::{Sdl, VideoSubsystem, image};
+use sdl2::{Sdl, VideoSubsystem, AudioSubsystem, image};
 use sdl2::video::{Window, WindowContext};
 use sdl2::render::{Canvas, TextureCreator};
 
@@ -11,6 +11,7 @@ use crate::{Error, init_err, Camera};
 pub struct ContextSdl {
     pub(crate) sdl_context : Sdl,
     _video_subsystem: VideoSubsystem,
+    _audio_subsystem: AudioSubsystem, 
     _image_context: image::Sdl2ImageContext,
     pub(crate) ttf_context: sdl2::ttf::Sdl2TtfContext,
     pub(crate) texture_creator: TextureCreator<WindowContext>,
@@ -35,7 +36,10 @@ impl ContextSdl {
                 .build()
         )?;
         let texture_creator = canvas.texture_creator();
-        Ok((canvas, ContextSdl { sdl_context, _video_subsystem, _image_context, ttf_context, texture_creator}))
+
+        let _audio_subsystem = init_err!(sdl_context.audio())?;
+        
+        Ok((canvas, ContextSdl { sdl_context, _video_subsystem, _audio_subsystem, _image_context, ttf_context, texture_creator}))
     }
 
     /// enable text input so that the `Control.input` get character function will return typed characters

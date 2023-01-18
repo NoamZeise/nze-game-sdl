@@ -1,4 +1,5 @@
-use sdl_helper::{Map, Camera, Colour, Render, DrawingArea, Error, GameObject, input::{keyboard::Key, controller}};
+use sdl_helper::{Map, Camera, Colour, Render, audio::AudioManager, DrawingArea, Error, GameObject};
+use sdl_helper::input::{keyboard::Key, controller};
 use geometry::*;
 
 use std::path::Path;
@@ -9,24 +10,34 @@ pub fn main() -> Result<(), Error> {
         "Game Template", //window name
         geometry::Rect::new(0.0, 0.0, 240.0, 160.0),
         geometry::Vec2::new(240.0 * 4.0, 160.0 * 4.0)
-    ).unwrap();
+    )?;
     let mut render = Render::new(drawing_area, &context)?;
    
     let mono_font = render.font_manager.load_font(Path::new("textures/fonts/FiraCode-Light.ttf"))?;
     
     let map = Map::new("test-resources/test.tmx", &mut render.texture_manager, &mut render.font_manager)?;
 
+    let mut audio = AudioManager::new()?;
+
+    let music = audio.music.load(Path::new("test-resources/audio/test.wav"))?;
+    audio.music.play(music, -1)?;
+
+    let sfx = audio.sfx.load(Path::new("test-resources/audio/test.mp3"))?;
+    audio.sfx.set_volume(sfx, 0.4)?;
+    
     //checking resource loading/unloading
     let mut is_gaia = true;
-    let mut ephemeral_obj =
-        GameObject::new_from_tex(render.texture_manager.load(Path::new("textures/gaia.png"))?);
+    let mut ephemeral_obj = GameObject::new_from_tex(render.texture_manager.load(Path::new("textures/gaia.png"))?);
 
-    let mut text = render.font_manager.load_text_obj(&mono_font,
-                                                     "The Planet Earth",
-                                                     Colour::new(100, 200, 70, 255),
-                                                     Vec2::new(0.0, 0.0), 10.0,
-                                                     Vec2::new(0.0, 0.0)
-    )?;
+    let mut text = render
+        .font_manager
+        .load_text_obj(
+            &mono_font,
+            "The Planet Earth",
+            Colour::new(100, 200, 70, 255),
+            Vec2::new(0.0, 0.0), 10.0,
+            Vec2::new(0.0, 0.0)
+        )?;
 
     loop {
         update(&mut render, &mut cam)?;
@@ -48,6 +59,10 @@ pub fn main() -> Result<(), Error> {
                                              Vec2::new(0.0, 0.0), 10.0, Vec2::new(0.0, 0.0))?;
             }
             is_gaia = !is_gaia;
+        }
+
+        if render.controls.kbm.press(Key::P) {
+            audio.sfx.play(sfx)?;
         }
         
         render.start_draw();

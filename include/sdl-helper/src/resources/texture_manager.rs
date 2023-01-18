@@ -49,14 +49,14 @@ impl<'a, T> TextureManager<'a, T> {
         })
     }
 
-    /// Calls 'unload' with the texture attached to the [GameObject]
+    /// Calls `unload` with the texture attached to the [GameObject]
     pub fn unload_from_gameobject(&mut self, game_object: GameObject) {
         self.unload(game_object.get_texture());
     }
 
     unload_resource!(
-        /// unload the internal 'Texture' referenced by the passed [resource::Texture] from memory
-        ,self, self.loaded_texture_paths, self.textures, tex, resource::Texture, "texture");
+        /// unload the internal `Texture` referenced by the passed [resource::Texture] from memory
+        , unload, self, self.loaded_texture_paths, self.textures, tex, resource::Texture, "texture");
 
     pub(crate) fn new(tex_creator: &'a TextureCreator<T>) -> Self {
         TextureManager {

@@ -53,7 +53,7 @@ impl<'a, T: 'a> FontManager<'a, T> {
     
     unload_resource!(
         ///unloades the [resource::Font] stored by the sdl2 context, it can no longer be used
-        ,self, self.loaded_font_paths, self.fonts, font, resource::Font, "font");
+        ,unload, self, self.loaded_font_paths, self.fonts, font, resource::Font, "font");
     
     /// return a [TextObject] that can be passed to 'Camera' to draw to the screen
     ///

@@ -14,4 +14,6 @@ pub enum Error {
     TextRender(String),
     /// Occurs if a resource that has been freed is used
     MissingResource(String),
+    /// Occurs if an audio resource fails to play
+    AudioPlay(String),
 }
