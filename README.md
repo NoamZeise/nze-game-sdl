@@ -16,6 +16,26 @@ The src directory acts as an example template of how to use the crates
 * loading and drawing [Tiled](https://www.mapeditor.org/) maps 
 * 2D camera for scaling and moving drawn textures and fonts
 
+## Setup 
+
+1. Clone this repository 
+2. Install [Rust](https://www.rust-lang.org/tools/install) if you haven't already
+3. Install SDL2, SDL2_image, SDL2_mixer, SDL2_ttf
+4. go to the root directory of this project and run 
+```
+$ cargo run
+```
+
+### Installing SDL2 on debian-based systems
+Run the following command
+```
+$ sudo apt install libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev
+```
+### Installing SDL2 on other systems
+
+follow the instructions for your system given in the repo for [rust-sdl2](https://github.com/Rust-SDL2/rust-sdl2), but remember you also need to get sdl2_mixer, sdl2_ttf and sdl2_image.
+
+
 ## Dependancies
 
 * [rust-sdl2](https://crates.io/crates/sdl2) for windowing, rendering, input, resource loading
@@ -30,5 +50,3 @@ The src directory acts as an example template of how to use the crates
 
 * audio loading and playback
 * Better resolution controls
-
- 
