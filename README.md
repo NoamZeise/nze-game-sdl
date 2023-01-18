@@ -15,6 +15,7 @@ The src directory acts as an example template of how to use the crates
 * loading and drawing textures and fonts to the screen
 * loading and drawing [Tiled](https://www.mapeditor.org/) maps 
 * 2D camera for scaling and moving drawn textures and fonts
+* loading and playing music and sound effect
 
 ## Setup 
 
@@ -48,5 +49,4 @@ follow the instructions for your system given in the repo for [rust-sdl2](https:
 
 ## TODO
 
-* audio loading and playback
 * Better resolution controls
