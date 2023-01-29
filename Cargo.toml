@@ -6,6 +6,6 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-tiled = { path = "include/tiled/" }
-geometry = { path = "include/geometry/" }
-sdl-helper = { path = "include/sdl-helper"}
+tiled = { path = "lib/tiled/" }
+geometry = { path = "lib/geometry/" }
+sdl-helper = { path = "lib/sdl-helper"}
