@@ -9,12 +9,13 @@ use sdl2::mixer;
 use sdl2::mixer::{InitFlag, Chunk};
 use crate::{Error, init_err, resource::SoundEffect, resource::Music, use_resource, unload_resource};
 
+
 macro_rules! audio_load {
     (
-        $(#[$($attrss:tt)*])*,
-        $fn_name:ident($self:ident) -> $res_type:tt,
-        $res_list:expr, $res_map: expr, $name:expr,
-        $load_cmd:expr
+        $(#[$($attrss:tt)*])*,                       // doc comments
+        $fn_name:ident($self:ident) -> $res_type:tt, // , fn_name(self) -> resource_type, 
+        $res_list:expr, $res_map: expr, $name:expr,  // list_of_resources, map_of_resource_filepaths, "Resource Name",
+        $load_cmd:expr                               // file_loading_function 
     ) => {
         $(#[$($attrss)*])*
         pub fn $fn_name(&mut $self, filepath: &Path) -> Result<$res_type, Error> {
@@ -24,6 +25,7 @@ macro_rules! audio_load {
         }
     };
 }
+
 
 /// Holds audio resources and controls playback of audio
 ///
@@ -56,6 +58,7 @@ impl<'a> AudioManager<'a> {
         })
     }
 }
+
 
 /// Load and play [resource::SoundEffect], created and owned by [AudioManager]
 pub struct SfxManager {
@@ -116,6 +119,7 @@ impl SfxManager {
         Ok(self.get_sfx(sfx)?.get_volume() as f64 / 128.0)
     }
 }
+
 
 /// Load and play [resource::Music], created and owned by [AudioManager]
 pub struct MusicManager<'a> {

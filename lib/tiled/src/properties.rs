@@ -17,7 +17,7 @@ pub struct Properties {
 }
 
 impl Properties {
-    pub fn blank() -> Properties {
+    pub(crate) fn blank() -> Properties {
         Properties { booleans: HashMap::new(), integers: HashMap::new(), }
     }
     

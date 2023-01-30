@@ -1,21 +1,21 @@
 use std::fs::File;
 use std::io::Read;
+use std::path::Path;
 use core;
 
 use quick_xml::events::attributes::Attribute;
 use quick_xml::events::{BytesStart, Event, BytesText};
 use quick_xml::reader::Reader;
 
-use super::{LayerData, Colour};
+use super::Colour;
 use super::error::TiledError;
 
-use geometry::Vec2;
 
-pub fn read_file_to_string(filename : &str) -> Result<String, TiledError> {
-    let mut file = match File::open(filename) {
+pub fn read_file_to_string(filepath : &Path) -> Result<String, TiledError> {
+    let mut file = match File::open(filepath) {
         Ok(f) => f,
         Err(e) => {
-            return Err(TiledError::FileReadError(filename.to_string(), e.to_string()));
+            return Err(TiledError::FileReadError(filepath.to_string_lossy().to_string(), e.to_string()));
         }
     };
     
@@ -23,7 +23,7 @@ pub fn read_file_to_string(filename : &str) -> Result<String, TiledError> {
     match file.read_to_string(&mut text) {
         Ok(_) => (),
         Err(e) => {
-            return Err(TiledError::FileReadError(filename.to_string(), e.to_string()));
+            return Err(TiledError::FileReadError(filepath.to_string_lossy().to_string(), e.to_string()));
         }
     };
     Ok(text)
@@ -149,38 +149,3 @@ pub fn parse_xml<T : HandleXml>(this: &mut T, reader: &mut Reader::<&[u8]>) -> R
     Ok(())
 }
 
-impl LayerData {
-    pub fn new() -> LayerData {
-        LayerData {
-            id: 0,
-            name: String::from(""),
-            visible: true,
-            locked: false,
-            opacity: 1.0,
-            colour: Colour{r: 255, g: 255, b: 255, a: 255 },
-            tint: Colour { r: 255, g: 255, b: 255, a: 255 },
-            index_draw_order: false,
-            parallax: Vec2::new(1.0, 1.0),
-            offset: Vec2::new(0.0, 0.0),
-            layer_position: 0,
-        }
-    }
-    pub fn handle_attrib(&mut self, a : &Attribute) -> Result<Option<()>, TiledError> {
-        match a.key.as_ref() {
-            b"id" => self.id = get_value(&a.value)?,
-            b"name" => self.name = get_string(&a.value)?.to_string(),
-            b"visible" => self.visible = get_value::<i32>(&a.value)? == 1,
-            b"locked" => self.locked = get_value::<i32>(&a.value)? == 1,
-            b"opacity" => self.opacity = get_value(&a.value)?,
-            b"color" => self.colour = get_colour(&a.value)?,
-            b"tintcolor" => self.tint = get_colour(&a.value)?,
-            b"draworder" => self.index_draw_order = get_string(&a.value)? == "index",
-            b"offsetx" => self.offset.x = get_value(&a.value)?,
-            b"offsety" => self.offset.y = get_value(&a.value)?,
-            b"parallaxx" => self.parallax.x = get_value(&a.value)?,
-            b"parallaxy" => self.parallax.y = get_value(&a.value)?,
-            _ => { return Ok(Some(())); }
-        }
-        Ok(None)
-    }
-}

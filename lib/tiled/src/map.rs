@@ -3,6 +3,7 @@ use super::*;
 use quick_xml::events::{BytesStart, attributes::Attribute};
 use quick_xml::Reader;
 
+use std::path::{Path, PathBuf};
 
 pub enum Orientation {
     Orthogonal,
@@ -26,6 +27,8 @@ pub struct MapMetadata {
     pub next_object_id : u32,
 }
 
+/// This is used for loading the Tiled maps and holds
+/// all of the structs in the library that describe the tilemap.
 pub struct Map {
     pub width : u32,
     pub height : u32,
@@ -41,7 +44,7 @@ pub struct Map {
     pub img_layers : Vec<ImageLayer>,
     pub texts : Vec<Text>,
 
-    pub path : String,
+    pub tilemap_directory : PathBuf,
     pub metadata : MapMetadata,
     // for counting what layer we are at
     current_layer: u32,
@@ -49,20 +52,20 @@ pub struct Map {
 }
 
 impl Map {
-    pub fn new(filename : &str) -> Result<Map, TiledError> {
-        let path = match filename.rsplit_once('/') {
-            Some((path, _)) => path,
-            None => "",
+    /// Load tilemap data into the structs that can be accessed from
+    /// the returned map.
+    pub fn new(filepath : &Path) -> Result<Map, TiledError> {
+        let path = match filepath.parent() {
+            Some(path) => path,
+            None => Path::new(""),
         };
-        let mut path = path.to_owned();
-        path.push('/');
         Self::load_and_parse_xml(
-            read_file_to_string(filename)?,
+            read_file_to_string(filepath)?,
             &path
         )
     }
 
-    fn blank_map(path: String) -> Map {
+    fn blank_map(path: &Path) -> Map {
         Map {
             width : 0,
             height : 0,
@@ -77,7 +80,7 @@ impl Map {
             obj_groups : Vec::new(),
             img_layers : Vec::new(),
             texts : Vec::new(),
-            path,
+            tilemap_directory: path.to_path_buf(),
             metadata : MapMetadata {
                 version: "".to_string(),
                 tiled_version: "".to_string(),
@@ -122,9 +125,9 @@ impl Map {
         Ok(())
     }
 
-    fn load_and_parse_xml(map_file_text : String, path : &str) -> Result<Map, TiledError> {
+    fn load_and_parse_xml(map_file_text : String, path : &Path) -> Result<Map, TiledError> {
         let mut reader = Reader::from_str(&map_file_text);
-        let mut map = Self::blank_map(path.to_string());
+        let mut map = Self::blank_map(path);
         parse_xml(&mut map, &mut reader)?;
         Ok(map)
     }
@@ -140,7 +143,7 @@ impl HandleXml for Map {
                 self.current_layer+=1;
             }, //add layer properly
             b"objectgroup" => {
-                self.obj_groups.push(ObjGroup::new(collect_attribs(&e)?, reader, self.path.clone(), self.current_layer)?);
+                self.obj_groups.push(ObjGroup::new(collect_attribs(&e)?, reader, &self.tilemap_directory, self.current_layer)?);
                 self.current_layer += 1;
             },
             b"imagelayer" => {
@@ -155,7 +158,7 @@ impl HandleXml for Map {
         match e.name().as_ref() {
             b"tileset" => {
                 self.tilesets.push(
-                    Tileset::new(collect_attribs(&e)?, self.path.clone())?
+                    Tileset::new(collect_attribs(&e)?, &self.tilemap_directory)?
                 );
                 self.total_tiles += self.tilesets.last().unwrap().tile_count;
             },

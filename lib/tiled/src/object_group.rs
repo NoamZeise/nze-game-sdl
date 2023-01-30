@@ -1,4 +1,6 @@
 
+use std::path::{Path, PathBuf};
+
 use super::{helper::*, LayerData, Colour};
 use super::error::TiledError;
 use super::Properties;
@@ -24,7 +26,7 @@ pub struct Obj {
     text : Option<Box<Text>>,
     point: bool,
     ellipse: bool,
-    pub template: Option<String>,
+    pub template: Option<PathBuf>,
 }
 
 pub struct Poly {
@@ -72,11 +74,11 @@ pub struct ObjGroup {
     pub ellipse: Vec<Ellipse>,
     pub text: Vec<Text>,
     pub info: LayerData,
-    path: String,
+    path: PathBuf,
 }
 
 impl ObjData {
-    pub fn blank() -> ObjData {
+    pub(crate) fn blank() -> ObjData {
         ObjData {
             id: 0,
             name: String::new(),
@@ -91,11 +93,12 @@ impl Obj {
         Obj { props: Properties::blank(), rect: Rect::new(0.0, 0.0, 0.0, 0.0), info: ObjData::blank(), poly: None, text: None, rotation: 0.0, point: false, ellipse: false, template: None}
     }
     
-    pub fn new(attribs : Vec<Attribute>, reader: Option<&mut Reader<&[u8]>>, path: &str) -> Result<Obj, TiledError> {
+    pub(crate) fn new(attribs : Vec<Attribute>, reader: Option<&mut Reader<&[u8]>>, path: &Path) -> Result<Obj, TiledError> {
         let mut obj = Obj::blank();
         obj.parse_attribs(attribs)?;
         if let Some(template) = &obj.template {
-            let file = &read_file_to_string(&(path.to_owned() + "/" + template))?;
+            let path: PathBuf = [path, template].iter().collect();
+            let file = &read_file_to_string(&path)?;
             let mut reader = Reader::from_str(&file);
             parse_xml(&mut obj, &mut reader)?;
         }
@@ -117,7 +120,7 @@ impl Obj {
                 b"type" => self.info.type_name = get_string(&a.value)?.to_string(),
                 b"visible" => self.info.visible = get_string(&a.value)? == "1",
                 b"rotation" => self.rotation = get_value(&a.value)?,
-                b"template" => self.template = Some(get_string(&a.value)?.to_string()),
+                b"template" => self.template = Some(PathBuf::from(get_string(&a.value)?)),
                 _ => println!("warning: unrecognized atrribute {:?}", a.key),
             }
         }
@@ -178,7 +181,7 @@ impl Poly {
         }
         Ok(())
     }
-    pub fn new(attribs : Vec<Attribute>, closed : bool) -> Result<Poly, TiledError> {
+    pub(crate) fn new(attribs : Vec<Attribute>, closed : bool) -> Result<Poly, TiledError> {
         let mut poly = Poly::blank();
         poly.parse_attribs(attribs, closed)?;
         Ok(poly)
@@ -228,7 +231,7 @@ impl Text {
         }
         Ok(())
     }
-    pub fn new(attribs : Vec<Attribute>, reader: &mut Reader<&[u8]>) -> Result<Text, TiledError> {
+    pub(crate) fn new(attribs : Vec<Attribute>, reader: &mut Reader<&[u8]>) -> Result<Text, TiledError> {
         let mut text = Text::blank();
         text.parse_attribs(attribs)?;
         parse_xml(&mut text, reader)?;
@@ -260,7 +263,7 @@ impl ObjGroup {
             ellipse: Vec::new(),
             text: Vec::new(),
             info: LayerData::new(),
-            path: String::new(),
+            path: PathBuf::new(),
         }
     }
     fn parse_attribs(&mut self, attribs : Vec<Attribute>) -> Result<(), TiledError> {
@@ -271,9 +274,9 @@ impl ObjGroup {
         }
         Ok(())
     }
-    pub fn new(attribs : Vec<Attribute>, reader: &mut Reader<&[u8]>, path: String, layer_index: u32) -> Result<ObjGroup, TiledError> {
+    pub(crate) fn new(attribs : Vec<Attribute>, reader: &mut Reader<&[u8]>, path: &Path, layer_index: u32) -> Result<ObjGroup, TiledError> {
         let mut og = ObjGroup::blank();
-        og.path = path;
+        og.path = path.to_path_buf();
         og.parse_attribs(attribs)?;
         parse_xml(&mut og, reader)?;
         let mut obj_list : Vec::<Obj> = Vec::new();

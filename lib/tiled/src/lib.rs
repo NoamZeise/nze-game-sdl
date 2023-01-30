@@ -1,6 +1,11 @@
-//! A library for loading maps and tilesets made with the Tiled map editor
-//! 
-//! Loads the map using a path, and also automatically loads any tilesets.
+//! A library for deserializing tiled maps and tilesets made with the Tiled map editor.
+//!
+//! Use `Map::new()` to loads the map using a path,
+//! and also automatically loads any tilesets data.
+//!
+//! see <https://doc.mapeditor.org/en/stable/> for information on what the map data
+//! represents.
+//!
 //! Note: infinite maps and templates are unsupported
 
 pub mod error;
@@ -33,9 +38,11 @@ pub struct Colour {
 #[cfg(test)]
 mod tiled_tests {
     use super::*;
+    use std::path::Path;
+    use geometry::*;
     #[test]
     fn test_map() {
-        let map = Map::new("test-resources/test.tmx").unwrap();
+        let map = Map::new(Path::new("test-resources/test.tmx")).unwrap();
         assert!(map.width == 4);
         assert!(map.height == 4);
         assert!(map.tile_width == 10);
@@ -54,7 +61,7 @@ mod tiled_tests {
         assert!(map.tilesets[0].margin == 5);
         assert!(map.tilesets[0].tile_count == 4);
         assert!(map.tilesets[0].column_count == 2);
-        assert!(map.tilesets[0].image_path == "test-resources/test-tileset.png");
+        assert!(map.tilesets[0].image_path == Path::new("test-resources/test-tileset.png"));
         assert!(map.tilesets[0].image_width == 32);
         assert!(map.tilesets[0].image_height == 32);
 
@@ -181,7 +188,7 @@ mod tiled_tests {
         assert!(map.img_layers.len() == 1);
         assert!(map.img_layers[0].info.offset.x == 19.247);
         assert!(map.img_layers[0].info.offset.y == -10.3445);
-        assert!(map.img_layers[0].image_path == "test-tileset.png");
+        assert!(map.img_layers[0].image_path == Path::new("test-tileset.png"));
         assert!(map.img_layers[0].width == 32);
         assert!(map.img_layers[0].height == 32);
         assert!(map.img_layers[0].repeat_x == false);

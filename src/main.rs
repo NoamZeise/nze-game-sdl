@@ -15,7 +15,7 @@ pub fn main() -> Result<(), Error> {
    
     let mono_font = render.font_manager.load_font(Path::new("textures/fonts/FiraCode-Light.ttf"))?;
     
-    let map = Map::new("test-resources/test.tmx", &mut render.texture_manager, &mut render.font_manager)?;
+    let map = Map::new(Path::new("test-resources/test.tmx"), &mut render.texture_manager, &mut render.font_manager)?;
 
     let mut audio = AudioManager::new()?;
 
@@ -43,7 +43,7 @@ pub fn main() -> Result<(), Error> {
         update(&mut render, &mut cam)?;
 
         // load/unload resources
-        if render.controls.kbm.down(Key::L) || render.controls.controller_press(0, controller::Button::A) {
+        if render.controls.kbm.press(Key::L) || render.controls.controller_press(0, controller::Button::A) {
             render.texture_manager.unload_from_gameobject(ephemeral_obj);
             render.font_manager.unload_text_obj(text);
             if is_gaia {

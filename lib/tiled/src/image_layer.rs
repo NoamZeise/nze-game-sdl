@@ -2,8 +2,10 @@ use super::{TiledError, HandleXml, helper::*, LayerData, Properties};
 
 use quick_xml::{events::{BytesStart, attributes::Attribute}, Reader};
 
+use std::path::PathBuf;
+
 pub struct ImageLayer {
-    pub image_path : String,
+    pub image_path : PathBuf,
     pub width: u32,
     pub height: u32,
     pub repeat_x: bool,
@@ -15,7 +17,7 @@ pub struct ImageLayer {
 impl ImageLayer {
     fn blank() -> ImageLayer {
         ImageLayer {
-            image_path: String::from(""),
+            image_path: PathBuf::new(),
             width: 0,
             height: 0,
             repeat_x: false,
@@ -24,7 +26,7 @@ impl ImageLayer {
             props: Properties::blank(),
         }
     }
-    pub fn new(attribs : Vec<Attribute>, reader : &mut Reader<&[u8]>, layer_index: u32) -> Result<ImageLayer, TiledError> {
+    pub(crate) fn new(attribs : Vec<Attribute>, reader : &mut Reader<&[u8]>, layer_index: u32) -> Result<ImageLayer, TiledError> {
         let mut img_layer = Self::blank();
         img_layer.parse_base_attribs(attribs)?;
         parse_xml(&mut img_layer, reader)?;
@@ -48,7 +50,7 @@ impl ImageLayer {
     fn parse_image_attributes(&mut self, attribs : Vec<Attribute>) -> Result<(), TiledError> {
         for a in attribs {
             match a.key.as_ref() {
-                b"source" => self.image_path = get_string(&a.value)?.to_string(),
+                b"source" => self.image_path.push(get_string(&a.value)?),
                 b"width" => self.width = get_value(&a.value)?,
                 b"height" => self.height = get_value(&a.value)?,
                 _ => println!("warning: unrecognized atrribute {:?}", a.key),
