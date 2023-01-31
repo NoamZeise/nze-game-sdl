@@ -4,7 +4,6 @@
 //! `Control` is updated by render in `event_loop`
 use geometry::Vec2;
 use sdl2::EventPump;
-use sdl2::GameControllerSubsystem;
 use std::time::Instant;
 
 mod mouse;
@@ -14,8 +13,14 @@ use controller::Controller;
 use controller::ControllerHandler;
 use keyboard::KBM;
 
+use crate::Camera;
+use crate::ContextSdl;
+use crate::Error;
+use crate::init_err;
+
 /// Holds info on input state and frame elapsed time
-/// held and updated by `Render` at the start of each frame
+///
+/// `update` must be called each frame to have proper input information 
 pub struct Controls {
     /// current keyboard and mouse state
     pub kbm: KBM,
@@ -30,6 +35,7 @@ pub struct Controls {
     /// update this value to change the deadzones of the controller axes
     pub axis_deadzone: f64,
 
+    event_pump: EventPump,
     controllers : Vec<Controller>,
     prev_controllers: Vec<Controller>,
     controller_handler: ControllerHandler,
@@ -37,30 +43,33 @@ pub struct Controls {
 }
 
 impl Controls {
-    pub(crate) fn new(gcs: GameControllerSubsystem) -> Controls {
-        Controls {
+    pub fn new(context: &ContextSdl) -> Result<Controls, Error> {
+        Ok(Controls {
+            event_pump: init_err!(context.sdl_context.event_pump())?,
             kbm: KBM::new(),
-            controller_handler: ControllerHandler::new(gcs),
+            controller_handler: ControllerHandler::new(
+                init_err!(context.sdl_context.game_controller())?
+            ),
             frame_elapsed: 0.0,
             prev_time: Instant::now(),
             controllers: Vec::new(),
             axis_deadzone: 0.1,
             prev_controllers: Vec::new(),
             should_close: false,
-        }
+        })
     }
 
-    pub(crate) fn update(&mut self, event_pump: &mut EventPump) {
+    fn update_input_state(&mut self) {
         self.prev_controllers = self.controllers.clone();
         self.kbm.update();
-        for e in event_pump.poll_iter() {
+        for e in self.event_pump.poll_iter() {
             let win_ev = match &e {
                 sdl2::event::Event::Window {
                     win_event:  w,
                     ..
                 } => {
                     Some(w)
-                }
+                },
                 _ => None,
             };
             match win_ev {
@@ -73,6 +82,17 @@ impl Controls {
         self.controller_handler.update_controller_state(&mut self.controllers);
         self.frame_elapsed = self.prev_time.elapsed().as_secs_f64();
         self.prev_time = Instant::now();
+    }
+
+    /// Update  using the sdl events that occured between the previous call.
+    /// This should be called at the start of update.
+    ///
+    /// The mouse pos is adjusted using the camera.
+    pub fn update(&mut self, cam: &Camera) {
+        self.update_input_state();
+        self.kbm.input.mouse.pos = cam.window_to_cam_vec2(
+            Vec2::new(self.kbm.input.mouse.x as f64, self.kbm.input.mouse.y as f64)
+        );
     }
 
     /// returns the number of currently connected controllers

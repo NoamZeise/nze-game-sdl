@@ -1,17 +1,13 @@
 use sdl2::pixels::Color;
-use sdl2::EventPump;
 use sdl2::video::WindowContext;
 
-use crate::{Camera, TextureManager, FontManager, input::Controls, DrawingArea, Error, ContextSdl, init_err};
+use crate::{Camera, TextureManager, FontManager, DrawingArea, Error, ContextSdl};
 use geometry::Vec2;
 
 /// Holds ownership of a [DrawingArea] and the resource managers.
-/// Also contains functions for doing the main update,draw loop
 pub struct Render<'sdl> {
     pub texture_manager: TextureManager<'sdl, WindowContext>,
     pub font_manager: FontManager<'sdl, WindowContext>,
-    pub controls: Controls,
-    event_pump: EventPump,
     drawing_area: DrawingArea,
 }
 
@@ -21,8 +17,6 @@ impl<'sdl> Render<'sdl> {
         Ok(Render {
             texture_manager: TextureManager::new(&context.texture_creator),
             font_manager: FontManager::new(&context.ttf_context, &context.texture_creator),
-            controls: Controls::new(context.sdl_context.game_controller().map_err(|e| { Error::Sdl2InitFailure(e.to_string())})?),
-            event_pump: init_err!(context.sdl_context.event_pump())?,
             drawing_area,
         })
     }
@@ -50,15 +44,6 @@ impl<'sdl> Render<'sdl> {
         }
         self.drawing_area.canvas.present();
         Ok(())
-    }
-
-    /// Update the controls struct using the sdl events that occured between the previous call.
-    /// This should be called at the start of update.
-    pub fn event_loop(&mut self, cam: &mut Camera) {
-        self.controls.update(&mut self.event_pump);
-            self.controls.kbm.input.mouse.pos = cam.window_to_cam_vec2(
-                Vec2::new(self.controls.kbm.input.mouse.x as f64, self.controls.kbm.input.mouse.y as f64)
-            );
     }
 
     /// Update the game window to the new size, and change the [Camera] to the new resolution

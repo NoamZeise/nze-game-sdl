@@ -60,7 +60,7 @@ impl<'a> AudioManager<'a> {
 }
 
 
-/// Load and play [resource::SoundEffect], created and owned by [AudioManager]
+/// Load and play [SoundEffect], created and owned by [AudioManager]
 pub struct SfxManager {
     sound_effects: Vec<Option<Chunk>>,
     sound_effects_paths: HashMap<String, usize>,
@@ -121,7 +121,7 @@ impl SfxManager {
 }
 
 
-/// Load and play [resource::Music], created and owned by [AudioManager]
+/// Load and play [Music], created and owned by [AudioManager]
 pub struct MusicManager<'a> {
     music : Vec<Option<mixer::Music<'a>>>,
     music_paths: HashMap<String, usize>,

@@ -1,5 +1,5 @@
 use sdl_helper::{Map, Camera, Colour, Render, audio::AudioManager, DrawingArea, Error, GameObject};
-use sdl_helper::input::{keyboard::Key, controller};
+use sdl_helper::input::{keyboard::Key, controller, Controls};
 use geometry::*;
 
 use std::path::Path;
@@ -12,6 +12,7 @@ pub fn main() -> Result<(), Error> {
         geometry::Vec2::new(240.0 * 4.0, 160.0 * 4.0)
     )?;
     let mut render = Render::new(drawing_area, &context)?;
+    let mut controls = Controls::new(&context)?;
    
     let mono_font = render.font_manager.load_font(Path::new("textures/fonts/FiraCode-Light.ttf"))?;
     
@@ -39,11 +40,12 @@ pub fn main() -> Result<(), Error> {
             Vec2::new(0.0, 0.0)
         )?;
 
-    loop {
-        update(&mut render, &mut cam)?;
+    while !controls.should_close {
+        controls.update(&cam);
+        update(&mut render, &mut controls, &mut cam)?;
 
         // load/unload resources
-        if render.controls.kbm.press(Key::L) || render.controls.controller_press(0, controller::Button::A) {
+        if controls.kbm.press(Key::L) || controls.controller_press(0, controller::Button::A) {
             render.texture_manager.unload_from_gameobject(ephemeral_obj);
             render.font_manager.unload_text_obj(text);
             if is_gaia {
@@ -61,55 +63,51 @@ pub fn main() -> Result<(), Error> {
             is_gaia = !is_gaia;
         }
 
-        if render.controls.kbm.press(Key::P) {
+        if controls.kbm.press(Key::P) {
             audio.sfx.play(sfx)?;
         }
         
         render.start_draw();
         
         map.draw(&mut cam);
-        cam.draw_disposable_text(&mono_font, format!("Wheel: {}", render.controls.kbm.mouse_wheel()), 40, render.controls.kbm.mouse_pos(), Colour::white(), Vec2::new(1.0, 1.0));
+        cam.draw_disposable_text(&mono_font, format!("Wheel: {}", controls.kbm.mouse_wheel()), 40, controls.kbm.mouse_pos(), Colour::white(), Vec2::new(1.0, 1.0));
         cam.draw_text(&text);
         cam.draw(&ephemeral_obj);
         
         render.end_draw(&mut cam)?;
-        
-        if render.controls.should_close {
-            break;
-        }
     }
 
     Ok(())
 }
 
 
-fn update(render: &mut Render, cam: &mut Camera) -> Result<(), Error> {
-    let prev_frame = render.controls.frame_elapsed;
+fn update(render: &mut Render, controls: &mut Controls, cam: &mut Camera) -> Result<(), Error> {
+    let prev_frame = controls.frame_elapsed;
     let mut pos = cam.get_offset();
     const SPEED : f64 = 500.0;
-    if render.controls.kbm.down(Key::Left) {
+    if controls.kbm.down(Key::Left) {
         pos.x -= SPEED * prev_frame;
     }
-    if render.controls.kbm.down(Key::Right) {
+    if controls.kbm.down(Key::Right) {
         pos.x += SPEED * prev_frame;
     }
-    if render.controls.kbm.down(Key::Up) {
+    if controls.kbm.down(Key::Up) {
         pos.y -= SPEED * prev_frame;
     }
-    if render.controls.kbm.down(Key::Down) {
+    if controls.kbm.down(Key::Down) {
         pos.y += SPEED * prev_frame;
     }
 
-    pos.x += SPEED * render.controls.kbm.mouse_wheel() as f64 * prev_frame;
+    pos.x += SPEED * controls.kbm.mouse_wheel() as f64 * prev_frame;
 
-    let v =  render.controls.controller_joy(0, controller::Side::Left) * SPEED * prev_frame;
+    let v =  controls.controller_joy(0, controller::Side::Left) * SPEED * prev_frame;
     pos = pos + v;
     
     cam.set_offset(pos);
     let mut win_size_update = false;
     let mut cs = cam.get_window_size();
     
-    if render.controls.kbm.down(Key::Equals) {
+    if controls.kbm.down(Key::Equals) {
         if cs.x < cam.get_view_size().x {
             cs.x *= 2.0;
             cs.y *= 2.0;
@@ -119,7 +117,7 @@ fn update(render: &mut Render, cam: &mut Camera) -> Result<(), Error> {
         }
         win_size_update = true;
     }
-    if render.controls.kbm.down(Key::Minus) {
+    if controls.kbm.down(Key::Minus) {
         if cs.x <= cam.get_view_size().x {
             cs.x /= 2.0;
             cs.y /= 2.0;
@@ -130,21 +128,21 @@ fn update(render: &mut Render, cam: &mut Camera) -> Result<(), Error> {
         win_size_update = true;
     }
 
-    if render.controls.kbm.down(Key::D) {
+    if controls.kbm.down(Key::D) {
         cs.x += SPEED * prev_frame;
         win_size_update = true;
     }
-    if render.controls.kbm.down(Key::A) {
+    if controls.kbm.down(Key::A) {
         
         cs.x -= SPEED * prev_frame;
         win_size_update = true;
     }
-    if render.controls.kbm.down(Key::W) {
+    if controls.kbm.down(Key::W) {
         
         cs.y += SPEED * prev_frame;
         win_size_update = true;
     }
-    if render.controls.kbm.down(Key::S) {
+    if controls.kbm.down(Key::S) {
         
         cs.y -= SPEED * prev_frame;
         win_size_update = true;
@@ -154,11 +152,9 @@ fn update(render: &mut Render, cam: &mut Camera) -> Result<(), Error> {
         render.set_win_size(cam, cs, false)?;
     }
 
-    if render.controls.kbm.down(Key::Escape) {
-        render.controls.should_close = true;
+    if controls.kbm.down(Key::Escape) {
+        controls.should_close = true;
     }
-
-    render.event_loop(cam);
     
     Ok(())
 }
