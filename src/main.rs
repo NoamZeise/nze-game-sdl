@@ -41,11 +41,11 @@ pub fn main() -> Result<(), Error> {
         )?;
 
     while !controls.should_close {
+        cam_controls(&mut render, &mut controls, &mut cam)?;
         controls.update(&cam);
-        update(&mut render, &mut controls, &mut cam)?;
-
+        
         // load/unload resources
-        if controls.kbm.press(Key::L) || controls.controller_press(0, controller::Button::A) {
+        if controls.kbm.press(Key::L) || controls.controller.press(0, controller::Button::A) {
             render.texture_manager.unload_from_gameobject(ephemeral_obj);
             render.font_manager.unload_text_obj(text);
             if is_gaia {
@@ -66,9 +66,9 @@ pub fn main() -> Result<(), Error> {
         if controls.kbm.press(Key::P) {
             audio.sfx.play(sfx)?;
         }
-
-        if controls.controller_press(0, controller::Button::DPadUp) {
-            controls.set_controller_rumble(0, 10000, 20000, 1000);
+        
+        if controls.controller.press(0, controller::Button::DPadUp) {
+            controls.controller.rumble(0, 10000, 20000, 1000);
         }
         
         render.start_draw();
@@ -85,7 +85,7 @@ pub fn main() -> Result<(), Error> {
 }
 
 
-fn update(render: &mut Render, controls: &mut Controls, cam: &mut Camera) -> Result<(), Error> {
+fn cam_controls(render: &mut Render, controls: &mut Controls, cam: &mut Camera) -> Result<(), Error> {
     let prev_frame = controls.frame_elapsed;
     let mut pos = cam.get_offset();
     const SPEED : f64 = 500.0;
@@ -104,7 +104,7 @@ fn update(render: &mut Render, controls: &mut Controls, cam: &mut Camera) -> Res
 
     pos.x += SPEED * controls.kbm.mouse_wheel() as f64 * prev_frame;
 
-    let v =  controls.controller_joy(0, controller::Side::Left) * SPEED * prev_frame;
+    let v =  controls.controller.joy(0, controller::Side::Left) * SPEED * prev_frame;
     pos = pos + v;
     
     cam.set_offset(pos);

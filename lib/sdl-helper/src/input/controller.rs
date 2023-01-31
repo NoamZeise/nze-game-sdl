@@ -17,52 +17,71 @@ pub enum Side {
     Right,
 }
 
-pub(crate) struct ControllerHandler {
+pub struct ControllerHandler {
+    /// update this value to change the deadzones of the controller axes
+    pub axis_deadzone: f64,
+    controllers: Vec<Controller>,
+    prev_controllers: Vec<Controller>,
     controller_subsystem: GameControllerSubsystem,
-    controllers: HashMap<u32, sdlController>,
+    sdl_controllers: HashMap<u32, sdlController>,
+    input_changed: bool,
 }
 
 impl ControllerHandler {
     pub(super) fn new(controller_subsystem: GameControllerSubsystem) -> ControllerHandler {
-        ControllerHandler {  controller_subsystem, controllers: HashMap::new()}
+        ControllerHandler {
+            axis_deadzone: 0.1,
+            controller_subsystem,
+            sdl_controllers: HashMap::new(),
+            controllers: Vec::new(),
+            prev_controllers: Vec::new(),
+            input_changed: false,
+        }
     }
 
-    pub(super) fn handle_event(&mut self, event: &Event, controllers: &mut Vec<Controller>) {
+    pub(super) fn handle_event(&mut self, event: &Event) {
         match event {
             Event::ControllerDeviceAdded { which , .. } => { 
                 if self.controller_subsystem.is_game_controller(*which) {
                     match self.controller_subsystem.open(*which) {
                         Ok(gc) => {
                             let id = gc.instance_id();
-                            self.controllers.insert(id, gc);
+                            self.sdl_controllers.insert(id, gc);
                             println!("controller added: {}", id);
-                            controllers.push(Controller::new(id));
+                            self.controllers.push(Controller::new(id));
                         },
-                        Err(e) => println!("error opening controller {:?}", e),
+                        Err(e) => eprintln!("error opening controller {:?}", e),
                     }
+                } else {
+                    eprintln!("warning: added device was not a game controller, unsupported");
                 }
             },
+            
             Event::ControllerDeviceRemoved { which , .. } => {
                 println!("controller removed: {}", which);
-                self.controllers.remove(which);
-                controllers.retain(|c| c.id != *which);
+                self.sdl_controllers.remove(which);
+                self.controllers.retain(|c| c.id != *which);
             },
             
-            /*Event::ControllerAxisMotion { which, axis, value, .. } => {
-                println!("id: {} axis: {:?} value: {}", which, axis, value);
-            }*/
-            Event::ControllerButtonDown { which, button, .. } =>
-            {
+            Event::ControllerAxisMotion { /*which, axis, value,*/ .. } => {
+                //println!("id: {} axis: {:?} value: {}", which, axis, value);
+                self.input_changed = true;
+            }
+            
+            Event::ControllerButtonDown { which, button, .. } => {
                 //println!("down:  id: {} button: {:?}", which, button);
-                for c in controllers.iter_mut() {
+                self.input_changed = true;
+                for c in self.controllers.iter_mut() {
                     if c.id == *which {
                         c.button[*button as usize] = true;
                     }
                 }
             }
+            
             Event::ControllerButtonUp { which, button, .. } => {
                 //println!("up:  id: {} button: {:?}", which, button);
-                for c in controllers.iter_mut() {
+                self.input_changed = true;
+                for c in self.controllers.iter_mut() {
                     if c.id == *which {
                         c.button[*button as usize] = false;
                     }
@@ -72,28 +91,119 @@ impl ControllerHandler {
         }
     }
 
-    pub(super) fn update_controller_state(&self, controllers: &mut Vec<Controller>) {
-        for c in controllers.iter_mut() {
-            c.update(&self.controllers[&c.id]);
+    pub(super) fn set_previous_controller(&mut self) {
+        if self.input_changed {
+            self.input_changed = false;
+            self.prev_controllers = self.controllers.clone();
         }
     }
 
-    pub(super) fn set_rumble(&mut self, c: &Controller, low_motor: u16, high_motor: u16, duration: u32) {
-        match self.controllers.get_mut(&c.id) {
-            None => (),
-            Some(c) => { match c.set_rumble(low_motor, high_motor, duration) {
-                _ => () // there will be an error if controller doesn't support rumble,
-                        // We will ignore this, as rumble isn't usually essential to a game
-            };},
-        };
+    pub(super) fn update_controller_state(&mut self) {
+        for c in self.controllers.iter_mut() {
+            c.update(&self.sdl_controllers[&c.id]);
+        }
     }
 
     fn _change_controller_mapping_text(&mut self, id: &u32, button_name: &str, button_code: &str) {
-        let mut  mapping = self.controllers[id].mapping();
+        let mut  mapping = self.sdl_controllers[id].mapping();
         let i = mapping.find(button_name).unwrap();
-        mapping = mapping[0..i].to_string() + button_name + ":" + button_code + "," + mapping[i..].split_once(",").unwrap().1;
+        mapping = mapping[0..i].to_string()
+            + button_name + ":"
+            + button_code + ","
+            + mapping[i..].split_once(",").unwrap().1;
         self.controller_subsystem.add_mapping(&mapping).unwrap();
     }
+
+    /// returns the number of currently connected controllers
+    pub fn count(&self) -> usize {
+        self.controllers.len()
+    }
+
+    /// returns true if the button is being held down
+    ///
+    /// will return false if the controller index is out of range
+    pub fn hold(&self, index: usize, button: Button) -> bool {
+        if index >= self.controllers.len() { return false; }
+        self.controllers[index].button[button as usize]
+    }
+
+    /// returns true if the controller button as just been pressed
+    ///
+    /// will return false if the controller index is out of range
+    pub fn press(&self, index: usize, button: Button) -> bool {
+        if index >= self.controllers.len() { return false; }
+        if index >= self.prev_controllers.len() {
+            return self.controllers[index].button[button as usize]
+        }
+        self.controllers[index].button[button as usize] &&
+            !self.prev_controllers[index].button[button as usize]
+    }
+
+    /// get a 2d vector representing the direction of the joystick. each direction ranges from `0.0` to `1.0`
+    ///
+    /// retuns `0.0` if the controller isn't connected
+    ///
+    /// use [Side] left and right to get the state of the two joysticks
+    ///
+    /// the `self.axis_deadzone` member of `Control` is automatically applied to the joystick values
+    pub fn joy(&self, index: usize, joy: Side) -> Vec2 {
+        if index >= self.controllers.len() { return Vec2::new(0.0, 0.0); }
+        match joy {
+            Side::Left => vec_deadzone(
+                self.controllers[index].left_joy, Vec2::new(self.axis_deadzone, self.axis_deadzone)
+            ),
+            Side::Right => vec_deadzone(
+                self.controllers[index].right_joy, Vec2::new(self.axis_deadzone, self.axis_deadzone)
+            ),
+        }
+    }
+
+    /// get a float representing the amount of travel the analogue trigger has gone through.
+    ///
+    /// values range from `0.0` to `1.0`
+    ///
+    /// returns `0.0` if the controller isn't connected
+    ///
+    /// the `side` parameter will give you the left or right analogue trigger
+    ///
+    /// the `self.axis_deadzone` member of `Control` is automatically applied to the trigger values
+    pub fn trigger(&self, index: usize, side: Side) -> f64 {
+        if index >= self.controllers.len() { return 0.0; }
+        match side {
+            Side::Left => deadzone(self.controllers[index].left_trigger, self.axis_deadzone),
+            Side::Right => deadzone(self.controllers[index].right_trigger, self.axis_deadzone),
+        }
+    }
+    
+    /// Set the rumble values of the controller.
+    ///
+    /// If the controller does not support rumble, this does nothing.
+    ///
+    /// If you set the duration to `u32::MAX` the duration will be very short, so use
+    /// some value smaller than that.
+    pub fn rumble(&mut self, index: usize, low_motor: u16,
+                                 high_motor: u16, duration: u32) {
+        if index >= self.controllers.len() { return; }
+        match self.sdl_controllers.get_mut(&self.controllers[index].id) {
+            None => (),
+            Some(c) => { match c.set_rumble(low_motor, high_motor, duration) {
+                _ => () // there will be an error if controller doesn't support rumble,
+                // We will ignore this, as rumble isn't usually essential to a game
+            };},
+        };
+    }
+}
+
+
+fn deadzone(val:f64,dz:f64) -> f64 {
+    if val.abs() > dz { val } else { 0.0 }
+}
+
+fn vec_deadzone(v:Vec2, dz:Vec2) -> Vec2 {
+    let mut  n_v = v;
+    n_v.x = deadzone(v.x, dz.x);
+    n_v.y = deadzone(v.y, dz.y);
+    n_v
 }
 
 const CONTROLLER_BTN_MAX : usize = Button::Touchpad as usize + 1;
