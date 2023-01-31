@@ -28,7 +28,6 @@ impl ControllerHandler {
     }
 
     pub(super) fn handle_event(&mut self, event: &Event, controllers: &mut Vec<Controller>) {
-        //println!("num joysticks: {}", self.controller_subsystem.num_joysticks().unwrap());
         match event {
             Event::ControllerDeviceAdded { which , .. } => { 
                 if self.controller_subsystem.is_game_controller(*which) {
@@ -77,6 +76,16 @@ impl ControllerHandler {
         for c in controllers.iter_mut() {
             c.update(&self.controllers[&c.id]);
         }
+    }
+
+    pub(super) fn set_rumble(&mut self, c: &Controller, low_motor: u16, high_motor: u16, duration: u32) {
+        match self.controllers.get_mut(&c.id) {
+            None => (),
+            Some(c) => { match c.set_rumble(low_motor, high_motor, duration) {
+                _ => () // there will be an error if controller doesn't support rumble,
+                        // We will ignore this, as rumble isn't usually essential to a game
+            };},
+        };
     }
 
     fn _change_controller_mapping_text(&mut self, id: &u32, button_name: &str, button_code: &str) {

@@ -66,6 +66,10 @@ pub fn main() -> Result<(), Error> {
         if controls.kbm.press(Key::P) {
             audio.sfx.play(sfx)?;
         }
+
+        if controls.controller_press(0, controller::Button::DPadUp) {
+            controls.set_controller_rumble(0, 10000, 20000, 1000);
+        }
         
         render.start_draw();
         

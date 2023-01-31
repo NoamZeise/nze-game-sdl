@@ -153,6 +153,19 @@ impl Controls {
             controller::Side::Right => deadzone(self.controllers[index].right_trigger, self.axis_deadzone),
         }
     }
+
+    /// Set the rumble values of the controller.
+    ///
+    /// If the controller does not support rumble, this does nothing.
+    ///
+    /// If you set the duration to `u32::MAX` the duration will be very short, so use
+    /// some value smaller than that.
+    pub fn set_controller_rumble(&mut self, index: usize, low_motor_intensity: u16,
+                                 high_motor_intensity: u16, duration: u32) {
+        if index >= self.controllers.len() { return; }
+        self.controller_handler.set_rumble(
+            &self.controllers[index], low_motor_intensity, high_motor_intensity, duration);
+    }
 }
 
 fn deadzone(val:f64,dz:f64) -> f64 {
