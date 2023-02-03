@@ -1,6 +1,6 @@
-use sdl_helper::{Map, Camera, Colour, Render, audio::AudioManager, DrawingArea, Error, GameObject};
+use sdl_helper::{map::Map, Camera, Colour, Render, audio::AudioManager, DrawingArea, Error, GameObject};
 use sdl_helper::input::{keyboard::Key, controller, Controls};
-use geometry::*;
+use sdl_helper::geometry::*;
 
 use std::path::Path;
 
@@ -8,8 +8,8 @@ pub fn main() -> Result<(), Error> {
     
     let (mut cam, drawing_area, context) = DrawingArea::new(
         "Game Template", //window name
-        geometry::Rect::new(0.0, 0.0, 240.0, 160.0),
-        geometry::Vec2::new(240.0 * 4.0, 160.0 * 4.0)
+        Rect::new(0.0, 0.0, 240.0, 160.0),
+        Vec2::new(240.0 * 4.0, 160.0 * 4.0)
     )?;
     let mut render = Render::new(drawing_area, &context)?;
     let mut controls = Controls::new(&context)?;

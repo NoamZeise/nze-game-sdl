@@ -7,7 +7,7 @@ This framework is made out of three crates in the include directory:
 * geometry - for rectangle and vector maths
 
 
-The src directory acts as an example template of how to use the crates
+An example template of how to use the lib exists is in the example folder (todo: make it a propery example)
 
 ## Features
 

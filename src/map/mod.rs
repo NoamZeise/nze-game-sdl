@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use tiled;
+pub use tiled;
 use crate::Camera;
 use crate::FontManager;
 use crate::TextureManager;

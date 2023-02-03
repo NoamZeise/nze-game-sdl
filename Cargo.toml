@@ -1,11 +1,14 @@
 [package]
-name = "game-template"
-version = "0.2.0"
+name = "sdl-helper"
+version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-tiled = { path = "lib/tiled/" }
 geometry = { path = "lib/geometry/" }
-sdl-helper = { path = "lib/sdl-helper"}
+tiled = { path = "lib/tiled/" }
+
+[dependencies.sdl2]
+version = "0.35"
+features = ["ttf", "image", "mixer"]
