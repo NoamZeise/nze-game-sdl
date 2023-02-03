@@ -26,7 +26,7 @@ impl Map {
     /// Will throw a `LoadFile` error if there is an error loading the tiled map with `tiled`
     ///
     /// Will pass on any errors from loading resources 
-    pub fn new<'sdl, TexType>(filename: &Path, tex_manager : &'sdl mut TextureManager<TexType>, font_manager: &'sdl mut FontManager<TexType>) -> Result<Self, Error> {
+    pub fn new<'sdl, TexType>(filename: &Path, tex_manager : &'sdl mut TextureManager<TexType>, font_folder: &Path, font_manager: &'sdl mut FontManager<TexType>) -> Result<Self, Error> {
         let mut map = Self {
             tiled_map: tiled::Map::new(filename).map_err(|e| { Error::LoadFile(format!("{:?}", e))})?,
             tiles: Vec::new(),
@@ -41,7 +41,7 @@ impl Map {
         map.load_tilesets(tex_manager)?;
         map.set_map_draws();
         map.set_img_layers(tex_manager)?;
-        map.set_obj_group_layers(font_manager)?;
+        map.set_obj_group_layers(font_folder, font_manager)?;
         
         map.clear_blank_layers();
         
@@ -81,9 +81,10 @@ impl Map {
         Ok(())
     }
 
-    fn set_obj_group_layers<'sdl, TexType>(&mut self, font_manager : &'sdl mut FontManager<TexType>) -> Result<(), Error> {
+    fn set_obj_group_layers<'sdl, TexType>(&mut self, font_folder: &Path, font_manager : &'sdl mut FontManager<TexType>) -> Result<(), Error> {
         for l in self.tiled_map.obj_groups.iter() {
             self.layers[l.info.layer_position as usize] = Layer::new_object_layer(
+                font_folder,
                 l,
                 font_manager
             )?;

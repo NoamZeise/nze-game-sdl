@@ -7,7 +7,7 @@ This framework is made out of three crates in the include directory:
 * geometry - for rectangle and vector maths
 
 
-An example template of how to use the lib exists is in the example folder (todo: make it a propery example)
+See the example folder (run with ```cargo run --example (name-of-example.rs)```.
 
 ## Features
 

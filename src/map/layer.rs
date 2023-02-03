@@ -64,7 +64,7 @@ impl Layer {
         layer
     }
 
-    pub fn new_object_layer<'sdl, TexType>(l: &tiled::ObjGroup, font_manager : &'sdl mut FontManager<TexType>) -> Result<Layer, Error> {
+    pub fn new_object_layer<'sdl, TexType>(font_folder: &Path, l: &tiled::ObjGroup, font_manager : &'sdl mut FontManager<TexType>) -> Result<Layer, Error> {
         let mut layer = Layer::blank();
         let layer_colour = Colour::new(
             l.info.colour.r as u8,
@@ -73,7 +73,7 @@ impl Layer {
             l.info.colour.a as u8
             );
         for t in l.text.iter() {
-            let font = font_manager.load_font(Path::new(&("textures/fonts/".to_string() + &t.font_family.replace(" ", "-") + ".ttf")))?;
+            let font = font_manager.load_font(&font_folder.join(Path::new(&(t.font_family.replace(" ", "-") + ".ttf"))))?;
 
             layer.text_draw.push(
                 font_manager.load_text_obj(

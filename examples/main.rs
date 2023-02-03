@@ -14,21 +14,23 @@ pub fn main() -> Result<(), Error> {
     let mut render = Render::new(drawing_area, &context)?;
     let mut controls = Controls::new(&context)?;
    
-    let mono_font = render.font_manager.load_font(Path::new("textures/fonts/FiraCode-Light.ttf"))?;
+    let mono_font = render.font_manager.load_font(Path::new("resources/textures/fonts/FiraCode-Light.ttf"))?;
     
-    let map = Map::new(Path::new("test-resources/test.tmx"), &mut render.texture_manager, &mut render.font_manager)?;
+    let map = Map::new(
+        Path::new("resources/map/test.tmx"), &mut render.texture_manager,
+        Path::new("resources/textures/fonts"), &mut render.font_manager)?;
 
     let mut audio = AudioManager::new()?;
 
-    let music = audio.music.load(Path::new("test-resources/audio/test.wav"))?;
+    let music = audio.music.load(Path::new("resources/audio/test.wav"))?;
     audio.music.play(music, -1)?;
 
-    let sfx = audio.sfx.load(Path::new("test-resources/audio/test.mp3"))?;
+    let sfx = audio.sfx.load(Path::new("resources/audio/test.mp3"))?;
     audio.sfx.set_volume(sfx, 0.4)?;
     
     //checking resource loading/unloading
     let mut is_gaia = true;
-    let mut ephemeral_obj = GameObject::new_from_tex(render.texture_manager.load(Path::new("textures/gaia.png"))?);
+    let mut ephemeral_obj = GameObject::new_from_tex(render.texture_manager.load(Path::new("resources/textures/gaia.png"))?);
 
     let mut text = render
         .font_manager
@@ -50,13 +52,13 @@ pub fn main() -> Result<(), Error> {
             render.font_manager.unload_text_obj(text);
             if is_gaia {
                 ephemeral_obj = GameObject::new_from_tex(
-                    render.texture_manager.load(Path::new("textures/error.png"))?);
+                    render.texture_manager.load(Path::new("resources/textures/error.png"))?);
                 text = render.font_manager.load_text_obj(&mono_font, "Error Text", Colour::new(200, 100, 70, 255),
                                                          Vec2::new(100.0, 0.0), 10.0, Vec2::new(0.0, 0.0))?;
                 text.parallax = Vec2::new(1.0, 1.0);
             } else {
                 ephemeral_obj = GameObject::new_from_tex(
-                    render.texture_manager.load(Path::new("textures/gaia.png"))?);
+                    render.texture_manager.load(Path::new("resources/textures/gaia.png"))?);
                 text = render.font_manager.load_text_obj(&mono_font, "The Planet Earth", Colour::new(100, 200, 70, 255),
                                              Vec2::new(0.0, 0.0), 10.0, Vec2::new(0.0, 0.0))?;
             }

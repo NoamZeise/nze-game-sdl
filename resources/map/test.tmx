@@ -4,7 +4,7 @@
  <layer id="2" name="bg" width="4" height="4">
   <data encoding="csv">
 4,4,0,0,
-2,2,2,0,
+2,4,4,0,
 2,2,2,0,
 4,4,0,0
 </data>
