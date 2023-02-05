@@ -26,8 +26,8 @@ pub type LayerTiles = Vec<u32>;
 pub struct Layer {
     pub props : Properties,
     pub tiles : LayerTiles,
-    pub width : i32,
-    pub height: i32,
+    pub width : i64,
+    pub height: i64,
     pub info: LayerData,
 }
 

@@ -89,7 +89,7 @@ impl SfxManager {
 
     /// Plays the sound effect
     pub fn play(&mut self, sfx: SoundEffect) -> Result<(), Error> {
-        mixer::Channel::all().play(self.get_sfx(sfx)?, 1)
+        mixer::Channel::all().play(self.get_sfx(sfx)?, 0)
             .map_err(
                 |e| Error::AudioPlay("failed to play sound effect, sdl_mixer error: ".to_string() + &e)
             )?;

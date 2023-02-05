@@ -9,7 +9,7 @@ pub struct Vec2 {
 
 impl Vec2 {
     /// Create a new [Vec2] with the suppied x and y components
-    pub fn new(x: f64, y: f64) -> Self {
+    pub const fn new(x: f64, y: f64) -> Self {
         Vec2 { x, y }
     }
 }

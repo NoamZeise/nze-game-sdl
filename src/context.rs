@@ -1,3 +1,4 @@
+use sdl2::mouse::MouseUtil;
 use sdl2::{Sdl, VideoSubsystem, AudioSubsystem, image};
 use sdl2::video::{Window, WindowContext};
 use sdl2::render::{Canvas, TextureCreator};
@@ -22,6 +23,7 @@ pub struct ContextSdl {
 impl ContextSdl {
     fn new(cam: &Camera, window_name: &str) -> Result<(Canvas<Window>, ContextSdl), Error> {
         let sdl_context = init_err!(sdl2::init())?;
+        sdl_context.mouse().show_cursor(false);
         let _video_subsystem = init_err!(sdl_context.video())?;
         let _image_context = init_err!(image::init(image::InitFlag::PNG))?;
         let ttf_context = init_err!(sdl2::ttf::init())?;
@@ -40,7 +42,6 @@ impl ContextSdl {
         let texture_creator = canvas.texture_creator();
 
         let _audio_subsystem = init_err!(sdl_context.audio())?;
-        
         Ok((canvas, ContextSdl { sdl_context, _video_subsystem, _audio_subsystem, _image_context, ttf_context, texture_creator}))
     }
 

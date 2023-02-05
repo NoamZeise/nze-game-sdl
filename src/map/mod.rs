@@ -15,9 +15,9 @@ use layer::*;
 
 /// Used for drawing [tiled] maps
 pub struct Map {
-    tiled_map: tiled::Map,
+    pub tiled_map: tiled::Map,
     tiles : Vec<Tile>,
-    layers : Vec<Layer>,
+    pub layers : Vec<Layer>,
 }
 
 impl Map {

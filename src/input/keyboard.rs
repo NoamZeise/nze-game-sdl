@@ -160,14 +160,18 @@ impl KBM {
         self.input.mouse.pos
     }
 
+    pub fn mouse_pos_cam_off(&self) -> Vec2 {
+        self.input.mouse.pos_cam
+    }
+
     /// returns true if the mouse button is currently being held down
     pub fn mouse_hold(&self, mouse_btn: MouseButton) -> bool {
-        self.input.query_mouse_btn(&mouse_btn) && !self.prev_input.query_mouse_btn(&mouse_btn)
+        self.input.query_mouse_btn(&mouse_btn) 
     }
 
     /// returns true if the mouse button was just pressed
     pub fn mouse_press(&self, mouse_btn: MouseButton) -> bool {
-        self.input.query_mouse_btn(&mouse_btn)
+        self.input.query_mouse_btn(&mouse_btn) && !self.prev_input.query_mouse_btn(&mouse_btn)
     }   
 }
 

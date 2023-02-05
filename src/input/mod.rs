@@ -85,6 +85,10 @@ impl Controls {
         self.kbm.input.mouse.pos = cam.window_to_cam_vec2(
             Vec2::new(self.kbm.input.mouse.x as f64, self.kbm.input.mouse.y as f64)
         );
+        self.kbm.input.mouse.pos_cam =
+            self.kbm.input.mouse.pos;
+        self.kbm.input.mouse.pos_cam.x -= cam.get_offset().x;
+        self.kbm.input.mouse.pos_cam.y -= cam.get_offset().y;
     }
 }
 

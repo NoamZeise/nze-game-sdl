@@ -4,7 +4,7 @@ use sdl_helper::geometry::*;
 
 use std::path::Path;
 
-pub fn main() -> Result<(), Error> {
+pub fn main() -> Result<( ), Error> {
     
     let (mut cam, drawing_area, context) = DrawingArea::new(
         "Game Template", //window name
