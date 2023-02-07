@@ -15,7 +15,7 @@ use layer::*;
 
 /// Used for drawing [tiled] maps
 pub struct Map {
-    tiled_map: tiled::Map,
+    pub tiled_map: tiled::Map,
     tiles : Vec<Tile>,
     layers : Vec<Layer>,
 }
@@ -51,7 +51,9 @@ impl Map {
     /// Draw the map to the camera's buffer, adjusted to the camera's offset and scale
     pub fn draw(&self, cam: &mut Camera) {
         for l in self.layers.iter() {
-            l.draw(cam);
+            if l.visible {
+                l.draw(cam);
+            }
         }
     }
 

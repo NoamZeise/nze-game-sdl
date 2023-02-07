@@ -153,21 +153,21 @@ impl KBM {
         self.input.mouse.wheel
     }
 
-    /// The position of the mouse in the screen corrected by the camera's scale, but not the camera's position
+    /// The position of the mouse in the screen corrected by the camera's scale, The camera's position is added based on the parallax value
     ///
-    /// The camera offset correction is done during `Render.event_loop`
-    pub fn mouse_pos(&self) -> Vec2 {
-        self.input.mouse.pos
+    /// The camera offset/scale correction is done during `Render.event_loop`
+    pub fn mouse_pos(&self, parallax: Vec2) -> Vec2 {
+        self.input.mouse.pos + self.input.mouse.cam_offset * parallax
     }
 
     /// returns true if the mouse button is currently being held down
     pub fn mouse_hold(&self, mouse_btn: MouseButton) -> bool {
-        self.input.query_mouse_btn(&mouse_btn) && !self.prev_input.query_mouse_btn(&mouse_btn)
+        self.input.query_mouse_btn(&mouse_btn)
     }
 
     /// returns true if the mouse button was just pressed
     pub fn mouse_press(&self, mouse_btn: MouseButton) -> bool {
-        self.input.query_mouse_btn(&mouse_btn)
+        self.input.query_mouse_btn(&mouse_btn) && !self.prev_input.query_mouse_btn(&mouse_btn)
     }   
 }
 

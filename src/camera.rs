@@ -95,8 +95,8 @@ impl Camera {
     }
 
     /// Draw a [Rect] with a [Colour] adjusted by the camera's `view` 
-    pub fn draw_rect(&mut self, rect: Rect, colour: Colour) {
-        self.rect_draws.push((rect, colour));
+    pub fn draw_rect(&mut self, rect: Rect, colour: Colour, parallax: Vec2) {
+        self.rect_draws.push((self.rect_to_cam_space(rect, parallax), colour));
     }
 
     /// Get the current view offset
@@ -145,8 +145,8 @@ impl Camera {
     }
 
     // Transform a pos from window space to cam space
-    pub(crate) fn window_to_cam_vec2(&self, pos: Vec2) -> Vec2 {
-        (self.size_ratio * pos) + self.get_offset()
+    pub(crate) fn window_to_cam_vec2(&self, pos: Vec2, parallax: Vec2) -> Vec2 {
+        (self.size_ratio * pos) + self.get_offset() * parallax
     }
 
     fn update_size_ratio(&mut self) {

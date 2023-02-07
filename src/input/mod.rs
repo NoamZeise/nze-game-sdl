@@ -82,8 +82,10 @@ impl Controls {
     /// The mouse pos is adjusted using the camera.
     pub fn update(&mut self, cam: &Camera) {
         self.update_input_state();
+        self.kbm.input.mouse.cam_offset = cam.get_offset();
         self.kbm.input.mouse.pos = cam.window_to_cam_vec2(
-            Vec2::new(self.kbm.input.mouse.x as f64, self.kbm.input.mouse.y as f64)
+            Vec2::new(self.kbm.input.mouse.x as f64, self.kbm.input.mouse.y as f64),
+            Vec2::zero()
         );
     }
 }

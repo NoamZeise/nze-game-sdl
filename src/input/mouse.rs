@@ -9,6 +9,7 @@ pub(crate) struct Mouse {
     pub x : i32,
     pub y : i32,
     pub pos: Vec2,
+    pub cam_offset: Vec2,
     pub wheel: i32,
     pub left_click : bool,
     pub middle_click: bool,
@@ -21,7 +22,8 @@ impl Mouse {
         Mouse {
             x: 0,
             y: 0,
-            pos: Vec2::new(0.0, 0.0),
+            pos: Vec2::zero(),
+            cam_offset: Vec2::zero(),
             wheel: 0,
             left_click : false,
             middle_click : false,

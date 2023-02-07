@@ -5,14 +5,16 @@ use geometry::*;
 
 #[derive(Clone)]
 pub struct Layer {
+
     pub tile_draws: Vec<GameObject>,
     pub image_draw: Option<GameObject>,
-    pub text_draw: Vec<TextObject>
+    pub text_draw: Vec<TextObject>,
+    pub visible: bool,
 }
 
 impl Layer {
     pub fn blank() -> Layer {
-        Layer { tile_draws: Vec::new(), image_draw: None, text_draw: Vec::new() }
+        Layer { tile_draws: Vec::new(), image_draw: None, text_draw: Vec::new(), visible: true,}
     }
     pub fn new_tile_layer(l: &tiled::Layer, tiles: &Vec<Tile>) -> Layer {
         let mut layer = Self::blank();
@@ -42,6 +44,7 @@ impl Layer {
                 );
             }
         }
+        layer.visible = l.info.visible;
         layer
     }
     

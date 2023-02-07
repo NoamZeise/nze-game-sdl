@@ -76,7 +76,7 @@ pub fn main() -> Result<(), Error> {
         render.start_draw();
         
         map.draw(&mut cam);
-        cam.draw_disposable_text(&mono_font, format!("Wheel: {}", controls.kbm.mouse_wheel()), 40, controls.kbm.mouse_pos(), Colour::white(), Vec2::new(1.0, 1.0));
+        cam.draw_disposable_text(&mono_font, format!("Wheel: {}", controls.kbm.mouse_wheel()), 40, controls.kbm.mouse_pos(Vec2::new(1.0, 1.0)), Colour::white(), Vec2::new(1.0, 1.0));
         cam.draw_text(&text);
         cam.draw(&ephemeral_obj);
         
