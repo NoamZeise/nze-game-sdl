@@ -1,54 +1,37 @@
-//! Holds a struct and some enums that can be used to get keboard and mouse input state
+//! Holds a struct and some enums that can be used to get keboard input state
 
-use geometry::Vec2;
-/// An enum of keyboard buttons used to index the array help by `KBMcontrols`
+/// An enum of keyboard buttons used to repressent the keys on a keyboard
 ///
 /// See `key!` macro in crate root for shorthand use of the key array
 pub use sdl2::keyboard::Scancode as Key;
 
-/// represents three buttons found on a standard mouse
-pub enum MouseButton {
-    Left,
-    Right,
-    Middle,
-}
-
 use sdl2::event::Event;
 
-use super::mouse::Mouse;
-
-/// Holds the input state for a frame of event updates
-///
-/// Holds keyboard and mouse state
+/// Holds the keyboard state for a frame of event updates
 #[derive(Copy, Clone)]
-pub(crate) struct KeyboardAndMouseStateHolder {
+struct KeyboardStateHolder {
     /// an array indexed by [Key] enums as usize
     pub keys : [bool; Key::Num as usize],
-    /// represents the mouse input state for this frame
-    pub mouse : Mouse,
     character : Option<char>,
 }
 
-impl KeyboardAndMouseStateHolder {
-    pub(crate) fn new() -> Self {
-        KeyboardAndMouseStateHolder {
+impl KeyboardStateHolder {
+    fn new() -> Self {
+        KeyboardStateHolder {
             keys      : [false; Key::Num as usize],
-            mouse     : Mouse::new(),
             character : None
         }
     }
 
-    pub(crate) fn handle_event(&mut self, event: &Event) {
+    fn handle_event(&mut self, event: &Event) {
         if event.is_keyboard() {
             self.handle_keyboard(event);
         } else if event.is_text() {
             self.handle_text(event);
-        } else if event.is_mouse() {
-            self.mouse.handle_mouse(event);
-        } 
+        }
     }
 
-    pub(crate) fn get_typed_character(&mut self) -> Option<char> {
+    fn get_typed_character(&mut self) -> Option<char> {
         match self.character {
             Some(c) => {
                 self.character = None;
@@ -92,32 +75,22 @@ impl KeyboardAndMouseStateHolder {
             _ => None,
         }
     }
-
-    pub fn query_mouse_btn(&self, mouse_btn: &MouseButton) -> bool {
-        match mouse_btn {
-            MouseButton::Left => self.mouse.left_click,
-            MouseButton::Middle => self.mouse.middle_click,
-           MouseButton::Right => self.mouse.right_click,
-        }
-    }
 }
 
-/// A type held by `Control` that can be queried for the state of the keyboard and mouse
-pub struct KBM {
-    // the main render struct updates the mouse pos using the camera, so it needs access to this member
-    pub(crate) input: KeyboardAndMouseStateHolder,
-    prev_input: KeyboardAndMouseStateHolder,
+/// A type held by `Control` that can be queried for the state of the keyboard
+pub struct Keyboard {
+    input: KeyboardStateHolder,
+    prev_input: KeyboardStateHolder,
 }
 
-impl KBM {
-    pub(super) fn new() -> KBM {
-        KBM {
-            input: KeyboardAndMouseStateHolder::new(),
-            prev_input: KeyboardAndMouseStateHolder::new(),
+impl Keyboard {
+    pub(super) fn new() -> Keyboard {
+        Keyboard {
+            input: KeyboardStateHolder::new(),
+            prev_input: KeyboardStateHolder::new(),
         }
     }
     pub(super) fn update(&mut self) {
-        self.input.mouse.wheel = 0;
         self.prev_input = self.input;
     }
 
@@ -143,31 +116,5 @@ impl KBM {
     pub fn get_typed_character(&mut self) -> Option<char> {
         self.input.get_typed_character()
     }
-
-    /// Get the current direction of the mouse scroll wheel
-    ///
-    /// - `0`  if not scrolling
-    /// - `1`  if scrolling up
-    /// - `-1` if scrolling down
-    pub fn mouse_wheel(&self) -> i32 {
-        self.input.mouse.wheel
-    }
-
-    /// The position of the mouse in the screen corrected by the camera's scale, The camera's position is added based on the parallax value
-    ///
-    /// The camera offset/scale correction is done during `Render.event_loop`
-    pub fn mouse_pos(&self, parallax: Vec2) -> Vec2 {
-        self.input.mouse.pos + self.input.mouse.cam_offset * parallax
-    }
-
-    /// returns true if the mouse button is currently being held down
-    pub fn mouse_hold(&self, mouse_btn: MouseButton) -> bool {
-        self.input.query_mouse_btn(&mouse_btn)
-    }
-
-    /// returns true if the mouse button was just pressed
-    pub fn mouse_press(&self, mouse_btn: MouseButton) -> bool {
-        self.input.query_mouse_btn(&mouse_btn) && !self.prev_input.query_mouse_btn(&mouse_btn)
-    }   
 }
 

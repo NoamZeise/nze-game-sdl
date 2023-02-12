@@ -2,15 +2,15 @@
 //!
 //! processes sdl2 events and update structs that can be used to control the game.
 //! `Control` is updated by render in `event_loop`
-use geometry::Vec2;
 use sdl2::EventPump;
 use std::time::Instant;
 
-mod mouse;
+pub mod mouse;
 pub mod controller;
 pub mod keyboard;
 use controller::ControllerHandler;
-use keyboard::KBM;
+use keyboard::Keyboard;
+use mouse::Mouse;
 
 use crate::Camera;
 use crate::ContextSdl;
@@ -21,8 +21,10 @@ use crate::init_err;
 ///
 /// `update` must be called each frame to have proper input information 
 pub struct Controls {
-    /// current keyboard and mouse state
-    pub kbm: KBM,
+    /// query for keyboard state
+    pub kb: Keyboard,
+    /// query for mouse state
+    pub m: Mouse,
     /// current controller state
     pub controller: ControllerHandler,
     /// time in seconds between last frame and this one
@@ -41,7 +43,8 @@ impl Controls {
     pub fn new(context: &ContextSdl) -> Result<Controls, Error> {
         Ok(Controls {
             event_pump: init_err!(context.sdl_context.event_pump())?,
-            kbm: KBM::new(),
+            kb: Keyboard::new(),
+            m: Mouse::new(),
             controller: ControllerHandler::new(
                 init_err!(context.sdl_context.game_controller())?
             ),
@@ -52,7 +55,8 @@ impl Controls {
     }
 
     fn update_input_state(&mut self) {
-        self.kbm.update();
+        self.kb.update();
+        self.m.update();
         self.controller.set_previous_controller();
         for e in self.event_pump.poll_iter() {
             let win_ev = match &e {
@@ -68,7 +72,8 @@ impl Controls {
                 Some(w) => match w {sdl2::event::WindowEvent::Close => { self.should_close = true; }, _ => ()},
                 _ => ()
             }
-            self.kbm.handle_event(&e);
+            self.kb.handle_event(&e);
+            self.m.handle_event(&e);
             self.controller.handle_event(&e);
         }
         self.controller.update_controller_state();
@@ -82,11 +87,7 @@ impl Controls {
     /// The mouse pos is adjusted using the camera.
     pub fn update(&mut self, cam: &Camera) {
         self.update_input_state();
-        self.kbm.input.mouse.cam_offset = cam.get_offset();
-        self.kbm.input.mouse.pos = cam.window_to_cam_vec2(
-            Vec2::new(self.kbm.input.mouse.x as f64, self.kbm.input.mouse.y as f64),
-            Vec2::zero()
-        );
+        self.m.correct_pos_with_cam(cam);
     }
 }
 

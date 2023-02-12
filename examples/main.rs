@@ -47,7 +47,7 @@ pub fn main() -> Result<(), Error> {
         controls.update(&cam);
         
         // load/unload resources
-        if controls.kbm.press(Key::L) || controls.controller.press(0, controller::Button::A) {
+        if controls.kb.press(Key::L) || controls.controller.press(0, controller::Button::A) {
             render.texture_manager.unload_from_gameobject(ephemeral_obj);
             render.font_manager.unload_text_obj(text);
             if is_gaia {
@@ -65,7 +65,7 @@ pub fn main() -> Result<(), Error> {
             is_gaia = !is_gaia;
         }
 
-        if controls.kbm.press(Key::P) {
+        if controls.kb.press(Key::P) {
             audio.sfx.play(sfx)?;
         }
         
@@ -76,7 +76,7 @@ pub fn main() -> Result<(), Error> {
         render.start_draw();
         
         map.draw(&mut cam);
-        cam.draw_disposable_text(&mono_font, format!("Wheel: {}", controls.kbm.mouse_wheel()), 40, controls.kbm.mouse_pos(Vec2::new(1.0, 1.0)), Colour::white(), Vec2::new(1.0, 1.0));
+        cam.draw_disposable_text(&mono_font, format!("Wheel: {}", controls.m.wheel()), 40, controls.m.pos(), Colour::white(), Vec2::new(1.0, 1.0));
         cam.draw_text(&text);
         cam.draw(&ephemeral_obj);
         
@@ -91,20 +91,20 @@ fn cam_controls(render: &mut Render, controls: &mut Controls, cam: &mut Camera) 
     let prev_frame = controls.frame_elapsed;
     let mut pos = cam.get_offset();
     const SPEED : f64 = 500.0;
-    if controls.kbm.down(Key::Left) {
+    if controls.kb.down(Key::Left) {
         pos.x -= SPEED * prev_frame;
     }
-    if controls.kbm.down(Key::Right) {
+    if controls.kb.down(Key::Right) {
         pos.x += SPEED * prev_frame;
     }
-    if controls.kbm.down(Key::Up) {
+    if controls.kb.down(Key::Up) {
         pos.y -= SPEED * prev_frame;
     }
-    if controls.kbm.down(Key::Down) {
+    if controls.kb.down(Key::Down) {
         pos.y += SPEED * prev_frame;
     }
 
-    pos.x += SPEED * controls.kbm.mouse_wheel() as f64 * prev_frame;
+    pos.x += SPEED * controls.m.wheel() as f64 * prev_frame;
 
     let v =  controls.controller.joy(0, controller::Side::Left) * SPEED * prev_frame;
     pos = pos + v;
@@ -113,7 +113,7 @@ fn cam_controls(render: &mut Render, controls: &mut Controls, cam: &mut Camera) 
     let mut win_size_update = false;
     let mut cs = cam.get_window_size();
     
-    if controls.kbm.down(Key::Equals) {
+    if controls.kb.down(Key::Equals) {
         if cs.x < cam.get_view_size().x {
             cs.x *= 2.0;
             cs.y *= 2.0;
@@ -123,7 +123,7 @@ fn cam_controls(render: &mut Render, controls: &mut Controls, cam: &mut Camera) 
         }
         win_size_update = true;
     }
-    if controls.kbm.down(Key::Minus) {
+    if controls.kb.down(Key::Minus) {
         if cs.x <= cam.get_view_size().x {
             cs.x /= 2.0;
             cs.y /= 2.0;
@@ -134,21 +134,21 @@ fn cam_controls(render: &mut Render, controls: &mut Controls, cam: &mut Camera) 
         win_size_update = true;
     }
 
-    if controls.kbm.down(Key::D) {
+    if controls.kb.down(Key::D) {
         cs.x += SPEED * prev_frame;
         win_size_update = true;
     }
-    if controls.kbm.down(Key::A) {
+    if controls.kb.down(Key::A) {
         
         cs.x -= SPEED * prev_frame;
         win_size_update = true;
     }
-    if controls.kbm.down(Key::W) {
+    if controls.kb.down(Key::W) {
         
         cs.y += SPEED * prev_frame;
         win_size_update = true;
     }
-    if controls.kbm.down(Key::S) {
+    if controls.kb.down(Key::S) {
         
         cs.y -= SPEED * prev_frame;
         win_size_update = true;
@@ -158,7 +158,7 @@ fn cam_controls(render: &mut Render, controls: &mut Controls, cam: &mut Camera) 
         render.set_win_size(cam, cs, false)?;
     }
 
-    if controls.kbm.down(Key::Escape) {
+    if controls.kb.down(Key::Escape) {
         controls.should_close = true;
     }
     
