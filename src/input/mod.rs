@@ -1,7 +1,11 @@
-//! Used to get input from the Keyboard and Mouse
+//! Used to get input from the Keyboard, Mouse, or controllers
 //!
-//! processes sdl2 events and update structs that can be used to control the game.
-//! `Control` is updated by render in `event_loop`
+//! [Controls] manages all of the input state and is used to query the current state.
+//!
+//! If you want to use input, create a [Controls] variable and update it each frame
+//! using [Controls::update].
+//! It processes sdl2 events and update structs that can be queried using the members of [Controls]
+
 use sdl2::EventPump;
 use std::time::Instant;
 
@@ -17,7 +21,7 @@ use crate::ContextSdl;
 use crate::Error;
 use crate::init_err;
 
-/// Holds info on input state and frame elapsed time
+/// Holds info on input state and frame elapsed time, created using a [crate::ContextSdl]
 ///
 /// `update` must be called each frame to have proper input information 
 pub struct Controls {
@@ -26,7 +30,7 @@ pub struct Controls {
     /// query for mouse state
     pub m: Mouse,
     /// current controller state
-    pub controller: ControllerHandler,
+    pub c: ControllerHandler,
     /// time in seconds between last frame and this one
     pub frame_elapsed: f64,
     /// This value must be checked by the user, e.g. break the game loop when this is true
@@ -45,7 +49,7 @@ impl Controls {
             event_pump: init_err!(context.sdl_context.event_pump())?,
             kb: Keyboard::new(),
             m: Mouse::new(),
-            controller: ControllerHandler::new(
+            c: ControllerHandler::new(
                 init_err!(context.sdl_context.game_controller())?
             ),
             frame_elapsed: 0.0,
@@ -57,7 +61,7 @@ impl Controls {
     fn update_input_state(&mut self) {
         self.kb.update();
         self.m.update();
-        self.controller.set_previous_controller();
+        self.c.set_previous_controller();
         for e in self.event_pump.poll_iter() {
             let win_ev = match &e {
                 sdl2::event::Event::Window {
@@ -74,9 +78,9 @@ impl Controls {
             }
             self.kb.handle_event(&e);
             self.m.handle_event(&e);
-            self.controller.handle_event(&e);
+            self.c.handle_event(&e);
         }
-        self.controller.update_controller_state();
+        self.c.update_controller_state();
         self.frame_elapsed = self.prev_time.elapsed().as_secs_f64();
         self.prev_time = Instant::now();
     }

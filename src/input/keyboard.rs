@@ -1,4 +1,4 @@
-//! Holds a struct and some enums that can be used to get keboard input state
+//! for keyboard input state. query by using the `kb` member of [crate::input::Controls]
 
 /// An enum of keyboard buttons used to repressent the keys on a keyboard
 ///

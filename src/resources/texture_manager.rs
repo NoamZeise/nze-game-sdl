@@ -28,7 +28,7 @@ impl TextureDraw {
     }
 }
 
-/// stores textures that are referenced by a [resource::Texture] object
+/// stores textures that are referenced by a [resource::Texture] object, created and owned by [crate::Render]
 pub struct TextureManager<'a, T> {
     texture_creator : &'a TextureCreator<T>,
     loaded_texture_paths : HashMap<String,  usize>,

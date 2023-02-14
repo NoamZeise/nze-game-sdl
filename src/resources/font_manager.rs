@@ -4,12 +4,12 @@ use sdl2::{video::Window, pixels::Color, ttf};
 use std::collections::HashMap;
 use std::path::Path;
 
-use crate::{resource, Colour, Error, rect_conversion::RectConversion};
+use crate::{resource::{Font, Text}, Colour, Error, rect_conversion::RectConversion};
 use crate::{file_err, font_err, draw_err, unload_resource, load, load_resource_helper, draw, TextObject};
 use geometry::*;
 
 pub struct TextDraw {
-    pub text: resource::Text,
+    pub text: Text,
     pub rect: Rect,
     pub colour: Colour,
 }
@@ -20,7 +20,7 @@ struct ResourceTextDraw<'a> {
 }
 
 pub(crate) struct DisposableTextDraw {
-    pub font : resource::Font,
+    pub font : Font,
     pub text: String,
     pub height : u32,
     pub pos : Vec2,
@@ -30,7 +30,7 @@ pub(crate) struct DisposableTextDraw {
 
 const FONT_LOAD_SIZE : u16 = 128;
 
-/// Stores `sdl2::ttf::Font`s and returns resources that represent loaded resources to fonts or text textures
+/// Stores [sdl2::ttf::Font]s and creates [Font]s or [TextObject]s. Created and owned by [crate::Render]
 pub struct FontManager<'a, T> {
     texture_creator : &'a TextureCreator<T>,
     ttf_context: &'a ttf::Sdl2TtfContext,
@@ -41,19 +41,19 @@ pub struct FontManager<'a, T> {
 
 impl<'a, T: 'a> FontManager<'a, T> {
     
-    //load a ttf font face to memory and get a [resource::Font] object that references it
-    pub fn load_font(&mut self, path : &Path) -> Result<resource::Font, Error>{
+    //load a ttf font face to memory and get a [Font] object that references it
+    pub fn load_font(&mut self, path : &Path) -> Result<Font, Error>{
         let font_index =
             load!(path, self.fonts, self.loaded_font_paths, self.ttf_context, "Font", FONT_LOAD_SIZE);
         Ok(
-            resource::Font {
+            Font {
             id: font_index,
         })
     }
     
     unload_resource!(
-        ///unloades the [resource::Font] stored by the sdl2 context, it can no longer be used
-        ,unload, self, self.loaded_font_paths, self.fonts, font, resource::Font, "font");
+        ///unloades the [Font] stored by the sdl2 context, it can no longer be used
+        ,unload, self, self.loaded_font_paths, self.fonts, font, Font, "font");
     
     /// return a [TextObject] that can be passed to 'Camera' to draw to the screen
     ///
@@ -62,7 +62,7 @@ impl<'a, T: 'a> FontManager<'a, T> {
     /// Note: The colour supplied as a function arg will be the coolour the font texture is generated with, the text drwa will be given the colour whit.
     /// The colour of the text draw is used to change the colour of the sdl2 draw commond,
     /// so setting the colour of the text draw will have a mixing effect on the colour of the text
-    pub fn load_text_obj(&mut self, font: &resource::Font, text: &str, colour : Colour, pos: Vec2, height: f64, parallax: Vec2) -> Result<TextObject, Error> {
+    pub fn load_text_obj(&mut self, font: &Font, text: &str, colour : Colour, pos: Vec2, height: f64, parallax: Vec2) -> Result<TextObject, Error> {
         if self.fonts[font.id].is_none() {
             return Err(Error::MissingResource(String::from("Used a text with an unloaded font")));
         }
@@ -71,7 +71,7 @@ impl<'a, T: 'a> FontManager<'a, T> {
         let tex_width = t.query().width;
         let tex_height = t.query().height;
         let index = load_resource_helper!(check_and_push(self.text_draws, Some(t)));
-        let text_resource = resource::Text { id: index, width: tex_width, height: tex_height};
+        let text_resource = Text { id: index, width: tex_width, height: tex_height};
         Ok(TextObject::new(
             text_resource,
             get_text_rect_from_height(
@@ -102,7 +102,7 @@ impl<'a, T: 'a> FontManager<'a, T> {
     }
 
     /// draws the supplied text to the canvas in the supplied font at the given height and position
-    fn draw(&self, canvas : &mut Canvas<Window>, font : &resource::Font, text: &str, height : u32, pos : Vec2, colour : Color, rect: Rect) -> Result<(), Error> {
+    fn draw(&self, canvas : &mut Canvas<Window>, font : &Font, text: &str, height : u32, pos : Vec2, colour : Color, rect: Rect) -> Result<(), Error> {
         if text.len() == 0 { return Ok(()); }
         let mut tex_draw = self.get_rendered_text(font, text, height, colour)?;
         tex_draw.rect.x = pos.x as i32;
@@ -128,11 +128,11 @@ impl<'a, T: 'a> FontManager<'a, T> {
     }
 
     
-    fn get_rendered_text(&self, font: &resource::Font, text: &str, height : u32, colour : Color) -> Result<ResourceTextDraw, Error> {
+    fn get_rendered_text(&self, font: &Font, text: &str, height : u32, colour : Color) -> Result<ResourceTextDraw, Error> {
         self.get_rendered_text_at_position(font, text, height, Vec2::new(0.0, 0.0), colour)
     }
 
-    fn get_rendered_text_at_position(&self, font: &resource::Font, text: &str, height : u32, pos: Vec2, colour: Color) -> Result<ResourceTextDraw, Error> {
+    fn get_rendered_text_at_position(&self, font: &Font, text: &str, height : u32, pos: Vec2, colour: Color) -> Result<ResourceTextDraw, Error> {
         if text.len() == 0 {
             return Err(Error::TextRender("text length should be greater than 0".to_string()));
         }

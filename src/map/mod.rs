@@ -1,9 +1,10 @@
+//! For loading, qurying, and drawing [Tiled](https://www.mapeditor.org/) maps
+
 use std::path::Path;
 
 pub use tiled;
 use crate::Camera;
-use crate::FontManager;
-use crate::TextureManager;
+use crate::manager::{FontManager, TextureManager};
 use crate::Error;
 
 mod tile;

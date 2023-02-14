@@ -1,7 +1,10 @@
+//! used to query information about the state of the mouse input.
+//! Query using `m` member of [crate::input::Controls]
+
 use sdl2::event::Event;
 
 /// represents the buttons on a mouse that sdl tracks the state of
-pub use sdl2::mouse::MouseButton as MouseButton;
+pub use sdl2::mouse::MouseButton as Button;
 
 use geometry::Vec2;
 
@@ -58,20 +61,20 @@ impl MouseStateHolder {
         };
         match btn {
             Some(btn) => match btn {
-                MouseButton::Left => self.left_click = btn_down,
-                MouseButton::Middle => self.middle_click = btn_down,
-                MouseButton::Right => self.right_click = btn_down,
+                Button::Left => self.left_click = btn_down,
+                Button::Middle => self.middle_click = btn_down,
+                Button::Right => self.right_click = btn_down,
                 _ => (),
             }
             None => (),
         }
     }
 
-    fn query_mouse_btn(&self, mouse_btn: &MouseButton) -> bool {
+    fn query_mouse_btn(&self, mouse_btn: &Button) -> bool {
         match mouse_btn {
-            MouseButton::Left => self.left_click,
-            MouseButton::Middle => self.middle_click,
-            MouseButton::Right => self.right_click,
+            Button::Left => self.left_click,
+            Button::Middle => self.middle_click,
+            Button::Right => self.right_click,
             _  => false,
         }
     }
@@ -139,12 +142,12 @@ impl Mouse {
     }
 
     /// returns true if the mouse button is currently being held down
-    pub fn hold(&self, mouse_btn: MouseButton) -> bool {
+    pub fn hold(&self, mouse_btn: Button) -> bool {
         self.input.query_mouse_btn(&mouse_btn)
     }
 
     /// returns true if the mouse button was just pressed
-    pub fn press(&self, mouse_btn: MouseButton) -> bool {
+    pub fn press(&self, mouse_btn: Button) -> bool {
         self.input.query_mouse_btn(&mouse_btn) && !self.prev_input.query_mouse_btn(&mouse_btn)
     }   
 }

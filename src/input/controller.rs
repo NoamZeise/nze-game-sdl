@@ -1,4 +1,4 @@
-//! Holds some enums that can be used to query controller state quing `Control`
+//! Holds some enums that can be used to query controller state using `c` memeber of  [crate::input::Controls]
 
 use std::collections::HashMap;
 

@@ -1,5 +1,5 @@
 use std::path::Path;
-use crate::{GameObject, TextObject, Colour, resource, FontManager, Camera, Error};
+use crate::{GameObject, TextObject, Colour, resource, manager::FontManager, Camera, Error};
 use super::tile::*;
 use geometry::*;
 

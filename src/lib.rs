@@ -9,14 +9,18 @@ mod camera;
 mod rect_conversion;
 mod error_macros;
 mod context;
-pub mod audio;
 
 pub use error::Error;
 pub use context::{ContextSdl, DrawingArea};
 pub use render::Render;
 pub use resources::resource;
-pub use resources::texture_manager::TextureManager;
-pub use resources::font_manager::FontManager;
+pub use resources::audio;
+/// resource managers which are created and held by other types
+pub mod manager {
+    pub use super::resources::texture_manager::TextureManager;
+    pub use super::resources::font_manager::FontManager;
+    pub use super::audio::{MusicManager, SfxManager};
+}
 pub use resources::types::{Colour, GameObject, TextObject};
 pub use camera::Camera;
 pub use geometry;

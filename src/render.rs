@@ -1,10 +1,11 @@
 use sdl2::pixels::Color;
 use sdl2::video::WindowContext;
 
-use crate::{Camera, TextureManager, FontManager, DrawingArea, Error, ContextSdl};
+use crate::{Camera, DrawingArea, Error, ContextSdl};
+use crate::manager::{FontManager, TextureManager};
 use geometry::Vec2;
 
-/// Holds ownership of a [DrawingArea] and the resource managers.
+/// Holds ownership of a [DrawingArea] and texture and font managers, created using a [ContextSdl]
 pub struct Render<'sdl> {
     pub texture_manager: TextureManager<'sdl, WindowContext>,
     pub font_manager: FontManager<'sdl, WindowContext>,

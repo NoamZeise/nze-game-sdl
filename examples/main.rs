@@ -47,7 +47,7 @@ pub fn main() -> Result<(), Error> {
         controls.update(&cam);
         
         // load/unload resources
-        if controls.kb.press(Key::L) || controls.controller.press(0, controller::Button::A) {
+        if controls.kb.press(Key::L) || controls.c.press(0, controller::Button::A) {
             render.texture_manager.unload_from_gameobject(ephemeral_obj);
             render.font_manager.unload_text_obj(text);
             if is_gaia {
@@ -69,8 +69,8 @@ pub fn main() -> Result<(), Error> {
             audio.sfx.play(sfx)?;
         }
         
-        if controls.controller.press(0, controller::Button::DPadUp) {
-            controls.controller.rumble(0, 10000, 20000, 1000);
+        if controls.c.press(0, controller::Button::DPadUp) {
+            controls.c.rumble(0, 10000, 20000, 1000);
         }
         
         render.start_draw();
@@ -106,7 +106,7 @@ fn cam_controls(render: &mut Render, controls: &mut Controls, cam: &mut Camera) 
 
     pos.x += SPEED * controls.m.wheel() as f64 * prev_frame;
 
-    let v =  controls.controller.joy(0, controller::Side::Left) * SPEED * prev_frame;
+    let v =  controls.c.joy(0, controller::Side::Left) * SPEED * prev_frame;
     pos = pos + v;
     
     cam.set_offset(pos);

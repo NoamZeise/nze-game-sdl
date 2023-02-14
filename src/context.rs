@@ -7,9 +7,9 @@ use crate::{Error, init_err, Camera};
 
 /// This holds ownership of many sdl types that are required for being able to use it,
 /// but the context will not be changed after creation.
-/// It is created by [DrawingArea]
+/// It is created by [DrawingArea].     
 ///
-/// This must be passed to `Render` and `Controls` to create them
+/// This must be passed to [crate::Render] and [crate::input::Controls] to create them
 pub struct ContextSdl {
     pub(crate) sdl_context : Sdl,
     _video_subsystem: VideoSubsystem,
