@@ -49,7 +49,7 @@ impl<'sdl> Render<'sdl> {
 
     /// Update the game window to the new size, and change the [Camera] to the new resolution
     ///
-    /// Chnages the resolution of the Sdl Canvas and centeres the window
+    /// Changes the resolution of the Sdl Canvas and centeres the window
     pub fn set_win_size(&mut self, cam: &mut Camera, cs: Vec2, keep_view_ratio: bool) -> Result<(), Error> {
         // TODO keep view ratio will add black bars instead of returning
         if keep_view_ratio {
