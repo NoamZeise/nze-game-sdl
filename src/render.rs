@@ -34,10 +34,14 @@ impl<'sdl> Render<'sdl> {
     pub fn end_draw(&mut self, cam: &mut Camera) -> Result<(), Error>{
         for d in cam.drain_draws() {
             match d {
-                Draw::Texture(t) => self.texture_manager.draw(&mut self.drawing_area.canvas, t)?,
-                Draw::Rect(r, c) => self.texture_manager.draw_rect(&mut self.drawing_area.canvas, &r, c)?,
-                Draw::Text(t) =>    self.font_manager.draw_text_draw(&mut self.drawing_area.canvas, t)?,
-                Draw::DisposableText(t) => self.font_manager.draw_disposable(&mut self.drawing_area.canvas, t)?,
+                Draw::Texture(t) => self.texture_manager.draw(
+                    &mut self.drawing_area.canvas, t)?,
+                Draw::Rect(r, c) => self.texture_manager.draw_rect(
+                    &mut self.drawing_area.canvas, &r, c)?,
+                Draw::Text(t) => self.font_manager.draw_text_draw(
+                    &mut self.drawing_area.canvas, t)?,
+                Draw::DisposableText(t) => self.font_manager.draw_disposable(
+                    &mut self.drawing_area.canvas, t)?,
             }
         }
         self.drawing_area.canvas.present();
