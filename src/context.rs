@@ -19,6 +19,20 @@ pub struct ContextSdl {
     pub(crate) texture_creator: TextureCreator<WindowContext>,
 }
 
+
+pub(crate) fn set_canvas_logical_size(cam: &Camera, canvas: &mut Canvas<Window>) -> Result<(), Error> {
+    match canvas.set_logical_size(
+        (cam.get_view_size().x) as u32,
+        (cam.get_view_size().y) as u32) {
+        Err(e) => Err(
+            Error::Sdl2ChangeState(
+                String::from(
+                    format!("failed to set logical size: \
+                             SDL Err: {}", e.to_string())))),
+        _ => Ok(()),
+    }
+}
+
 impl ContextSdl {
     fn new(cam: &Camera, window_name: &str) -> Result<(Canvas<Window>, ContextSdl), Error> {
         let sdl_context = init_err!(sdl2::init())?;
@@ -28,15 +42,16 @@ impl ContextSdl {
         let window = init_err!(
             _video_subsystem
                 .window(window_name, cam.get_window_size().x as u32, cam.get_window_size().y as u32)
-                .opengl()
+                .resizable()                
                 .build()
         )?;
-        let canvas = init_err!(
+        let mut canvas = init_err!(
             window
                 .into_canvas()
                 .present_vsync()
                 .build()
         )?;
+        set_canvas_logical_size(cam, &mut canvas)?;
         let texture_creator = canvas.texture_creator();
 
         let _audio_subsystem = init_err!(sdl_context.audio())?;

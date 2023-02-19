@@ -1,8 +1,8 @@
 use sdl2::pixels::Color;
-use sdl2::video::WindowContext;
+use sdl2::video::{WindowContext, FullscreenType};
 
 use crate::camera::Draw;
-use crate::{Camera, DrawingArea, Error, ContextSdl};
+use crate::{Camera, DrawingArea, Error, ContextSdl, helper_err};
 use crate::manager::{FontManager, TextureManager};
 use geometry::Vec2;
 
@@ -47,22 +47,36 @@ impl<'sdl> Render<'sdl> {
     /// Update the game window to the new size, and change the [Camera] to the new resolution
     ///
     /// Changes the resolution of the Sdl Canvas and centeres the window
-    pub fn set_win_size(&mut self, cam: &mut Camera, cs: Vec2, keep_view_ratio: bool) -> Result<(), Error> {
-        // TODO keep view ratio will add black bars instead of returning
-        if keep_view_ratio {
-            if cs.x / cs.y != cam.aspect_ratio() {
-                return Ok(());
-            }
-        }
+    pub fn set_win_size(&mut self, cam: &mut Camera, cs: Vec2) -> Result<(), Error> {
         cam.set_window_size(cs);
-        match self.drawing_area.canvas.window_mut().set_size(cs.x as u32, cs.y as u32) {
-            Err(_) => { return Err(Error::Sdl2ChangeState(String::from("failed to resize window")));},
-            _ => ()
-        }
-        self.drawing_area.canvas.window_mut().set_position(
-            sdl2::video::WindowPos::Centered,
-            sdl2::video::WindowPos::Centered
-        );
+        helper_err!(self.drawing_area
+            .canvas.window_mut()
+            .set_size(cs.x as u32, cs.y as u32), Sdl2ChangeState)?;
+        crate::context::set_canvas_logical_size(cam, &mut self.drawing_area.canvas)?;
         Ok(())
+    }
+
+    /// Set whether the window shoudl take up the full screen or not
+    ///
+    /// Fullscreen is really windowed borderless, taking up the whole monitor
+    pub fn set_fullscreen(&mut self, cam: &mut Camera, fullscreen: bool) -> Result<(), Error> {
+        helper_err!(
+            self.drawing_area.canvas.window_mut().set_fullscreen(
+                if fullscreen { FullscreenType::Desktop } else { FullscreenType::Off}
+            ),
+            Sdl2ChangeState)?;
+        crate::context::set_canvas_logical_size(cam, &mut self.drawing_area.canvas)?;
+        Ok(())
+    }
+
+    pub fn get_fullscreen(&self) -> bool {
+        self.drawing_area.canvas.window().fullscreen_state() == FullscreenType::Desktop
+    }
+
+    /// Toggle from the current fullscreen state, to the opposite, and returns the new value.
+    pub fn toggle_fullscreen(&mut self, cam: &mut Camera) -> Result<bool, Error> {
+        Ok(if self.get_fullscreen() { self.set_fullscreen(cam, false)?; false } else {
+            self.set_fullscreen(cam, true)?; true
+        })
     }
 }

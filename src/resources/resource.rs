@@ -4,7 +4,7 @@
 
 /// A handle for a 2D texture loaded to memory
 ///
-/// created by [crate::manager::TextureMananger]
+/// created by [crate::manager::TextureManager]
 #[derive(Clone, Copy)]
 pub struct Texture {
     pub(crate) id:     usize,

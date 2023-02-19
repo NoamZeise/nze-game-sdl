@@ -108,7 +108,8 @@ impl Camera {
 
     /// Set the camera's view offset
     ///
-    /// The view offset will move all draws by the offset multiplied by the object's `parallax`
+    /// The view offset will move all draws by the offset
+    /// multiplied by the object's `parallax`
     pub fn set_offset(&mut self, offset: Vec2) {
         self.rect.x = offset.x;
         self.rect.y = offset.y;
@@ -134,21 +135,28 @@ impl Camera {
 
     /// Set the camera's view size
     ///
-    /// The view size is the resolution of your game, which may be different from your window resolution
+    /// The view size is the resolution of your game,
+    /// which may be different from your window resolution
+    ///
+    /// The supplied view size is modified by the `zoom` member
     pub fn set_view_size(&mut self, view: Vec2) {
         self.rect.w = view.x;
         self.rect.h = view.y;
         self.update_size_ratio();
     }
 
-    /// Get the current aspect ratio (the view width divided by the view height)
+
+    /// Get the current aspect ratio
+    /// (the view width divided by the view height)
     pub fn aspect_ratio(&self) -> f64 {
         self.rect.w / self.rect.h
     }
 
     // Transform a pos from window space to cam space
-    pub(crate) fn window_to_cam_vec2(&self, pos: Vec2, parallax: Vec2) -> Vec2 {
-        (self.size_ratio * pos) + self.get_offset() * parallax
+    pub(crate) fn window_to_cam_vec2(
+        &self, pos: Vec2, parallax: Vec2
+    ) -> Vec2 {
+        (pos) + (self.get_offset() * parallax)
     }
 
     fn update_size_ratio(&mut self) {
@@ -158,12 +166,14 @@ impl Camera {
         );
     }
 
-    pub(crate) fn rect_to_cam_space(&self, rect: Rect, parallax: Vec2) -> Rect {
+    pub(crate) fn rect_to_cam_space(
+        &self, rect: Rect, parallax: Vec2
+    ) -> Rect {
         Rect::new(
-            ((rect.x) - (self.rect.x * parallax.x)) / self.size_ratio.x,
-            ((rect.y) - (self.rect.y * parallax.y)) / self.size_ratio.y,
-            rect.w / self.size_ratio.x,
-            rect.h / self.size_ratio.y,
+            (rect.x) - (self.rect.x * parallax.x),
+            (rect.y) - (self.rect.y * parallax.y),
+            rect.w,
+            rect.h,
         )
     }
 }

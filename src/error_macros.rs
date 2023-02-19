@@ -38,5 +38,12 @@ macro_rules! resource_err {
     };
 }
 
+#[doc(hidden)]
+#[macro_export]
+macro_rules! helper_err {
+    ($expr:expr, $err:ident) => {
+	$expr.map_err(|e| {Error::$err(e.to_string())})
+    };
+}
 
 

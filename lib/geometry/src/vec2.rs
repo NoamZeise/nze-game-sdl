@@ -26,6 +26,13 @@ impl ops::Add<Vec2> for Vec2 {
     }
 }
 
+impl ops::Sub<Vec2> for Vec2 {
+    type Output = Vec2;
+    fn sub(self, other : Vec2) -> Vec2 {
+        Vec2::new(self.x - other.x, self.y - other.y)
+    }
+}
+
 impl ops::Mul<f64> for Vec2 {
     type Output = Vec2;
     fn mul(self, other: f64) -> Vec2 {
@@ -37,5 +44,12 @@ impl ops::Mul<Vec2> for Vec2 {
     type Output = Vec2;
     fn mul(self, other: Vec2) -> Vec2 {
         Vec2::new(self.x * other.x, self.y * other.y)
+    }
+}
+
+impl ops::Div<f64> for Vec2 {
+    type Output = Vec2;
+    fn div(self, other: f64) -> Vec2 {
+        Vec2::new(self.x / other, self.y / other)
     }
 }

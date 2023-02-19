@@ -1,4 +1,8 @@
-use sdl_helper::{map::Map, Camera, Colour, Render, audio::AudioManager, DrawingArea, Error, GameObject};
+use sdl_helper::map::Map;
+use sdl_helper::{
+    Camera, Colour, Render,
+    audio::AudioManager,
+    DrawingArea, Error, GameObject};
 use sdl_helper::input::{keyboard::Key, controller, Controls};
 use sdl_helper::geometry::*;
 
@@ -83,7 +87,7 @@ pub fn main() -> Result<(), Error> {
         }
         
         ephemeral_obj.rotate += controls.frame_elapsed * 30.0;
-
+        
         if controls.kb.press(Key::F) {
             ephemeral_obj.flip_horizontal = !ephemeral_obj.flip_horizontal;
         }
@@ -176,14 +180,19 @@ fn cam_controls(render: &mut Render, controls: &mut Controls, cam: &mut Camera) 
         cs.y += SPEED * prev_frame;
         win_size_update = true;
     }
+
     if controls.kb.down(Key::S) {
         
         cs.y -= SPEED * prev_frame;
         win_size_update = true;
     }
+
+    if controls.kb.press(Key::Num1) {
+        render.toggle_fullscreen(cam)?;
+    }
     
     if win_size_update {
-        render.set_win_size(cam, cs, false)?;
+        render.set_win_size(cam, cs)?;
     }
 
     if controls.kb.down(Key::Escape) {
