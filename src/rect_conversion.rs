@@ -1,5 +1,5 @@
-use geometry::Rect;
-use sdl2;
+use geometry::{Rect, Vec2};
+use sdl2::{self, rect::Point};
 
 pub trait RectConversion {
     fn new_from_sdl_rect(sdl_rect : &sdl2::rect::Rect) -> Self;
@@ -20,5 +20,15 @@ impl RectConversion for Rect{
     /// construct an `sdl2::rect::Rect` using this `Rect`
     fn to_sdl_rect(&self) -> sdl2::rect::Rect {
         sdl2::rect::Rect::new(self.x as i32, self.y as i32, self.w as u32, self.h as u32)
+    }
+}
+
+pub trait Vec2Conversion {
+    fn to_sdl_point(&self) -> Point;
+}
+
+impl Vec2Conversion for Vec2 {
+    fn to_sdl_point(&self) -> Point {
+        Point::new(self.x as i32, self.y as i32)
     }
 }

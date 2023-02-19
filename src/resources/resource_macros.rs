@@ -5,19 +5,37 @@
 macro_rules! draw {
     // draw a resource with an id, colour and rects to an sdl canvas
     (
-        fn $fn_name:ident($self:ident, $draw:ident : $draw_type:ty) (
-            $res_list:expr, // list of resources
-            $id:expr, // resource ID
-            $col:expr, // resource colour
-            $text_rect: expr, // texture rect
-            $draw_rect:expr)) => { // draw rect
-        
+        fn $fn_name:ident($self:ident, $draw:ident : $draw_type:ty) 
+            $res_list:expr // list of resources
+        ) => { 
         pub(crate) fn $fn_name(&mut $self, canvas: &mut Canvas<Window>, $draw:$draw_type) -> Result<(), Error> {
-            $crate::use_resource!($res_list, $id, Some(t) => {
-                t.set_color_mod($col.r, $col.g, $col.b);
-                t.set_alpha_mod($col.a);
-                Ok(draw_err!(canvas.copy(&t, $text_rect, $draw_rect))?)
-            } )
+            $crate::use_resource!($res_list, $draw.tex.id, Some(t) => {
+                t.set_color_mod(
+                    $draw.colour.r,
+                    $draw.colour.g,
+                    $draw.colour.b);
+                t.set_alpha_mod($draw.colour.a);
+                Ok(draw_err!(
+                    canvas.copy_ex(
+                        &t,
+                        match $draw.tex_rect {
+                            Some(r) => Some(r.to_sdl_rect()),
+                            None => None,
+                        },
+                        match $draw.draw_rect {
+                            Some(r) => Some(r.to_sdl_rect()),
+                            None => None,
+                        },
+                        $draw.angle,
+                        match $draw.centre {
+                            Some(p) => Some(p.to_sdl_point()),
+                            None => None,
+                        },
+                        $draw.flip_horizontal,
+                        $draw.flip_vertical,
+                    )
+                )?)
+            })
         }
     };
 }

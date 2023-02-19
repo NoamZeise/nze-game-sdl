@@ -1,6 +1,7 @@
 use sdl2::pixels::Color;
 use sdl2::video::WindowContext;
 
+use crate::camera::Draw;
 use crate::{Camera, DrawingArea, Error, ContextSdl};
 use crate::manager::{FontManager, TextureManager};
 use geometry::Vec2;
@@ -32,16 +33,12 @@ impl<'sdl> Render<'sdl> {
     /// This is when the sdl drawing commands actually occur
     pub fn end_draw(&mut self, cam: &mut Camera) -> Result<(), Error>{
         for d in cam.drain_draws() {
-            self.texture_manager.draw(&mut self.drawing_area.canvas, d)?;
-        }
-        for d in cam.drain_text_draws() {
-            self.font_manager.draw_text_draw(&mut self.drawing_area.canvas, d)?;
-        }
-        for d in cam.drain_temp_text_draws() {
-            self.font_manager.draw_disposable(&mut self.drawing_area.canvas, d)?;
-        }
-        for d in cam.drain_rect_draws() {
-            self.texture_manager.draw_rect(&mut self.drawing_area.canvas, &d.0, d.1)?;
+            match d {
+                Draw::Texture(t) => self.texture_manager.draw(&mut self.drawing_area.canvas, t)?,
+                Draw::Rect(r, c) => self.texture_manager.draw_rect(&mut self.drawing_area.canvas, &r, c)?,
+                Draw::Text(t) =>    self.font_manager.draw_text_draw(&mut self.drawing_area.canvas, t)?,
+                Draw::DisposableText(t) => self.font_manager.draw_disposable(&mut self.drawing_area.canvas, t)?,
+            }
         }
         self.drawing_area.canvas.present();
         Ok(())

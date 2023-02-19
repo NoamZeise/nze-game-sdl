@@ -64,6 +64,8 @@ pub fn main() -> Result<(), Error> {
             }
             is_gaia = !is_gaia;
         }
+        
+        ephemeral_obj.rotate += controls.frame_elapsed * 30.0;
 
         if controls.kb.press(Key::P) {
             audio.sfx.play(sfx)?;
@@ -76,10 +78,9 @@ pub fn main() -> Result<(), Error> {
         render.start_draw();
         
         map.draw(&mut cam);
-        cam.draw_disposable_text(&mono_font, format!("Wheel: {}", controls.m.wheel()), 40, controls.m.pos(), Colour::white(), Vec2::new(1.0, 1.0));
-        cam.draw_text(&text);
         cam.draw(&ephemeral_obj);
-        
+        cam.draw_text(&text);
+        cam.draw_disposable_text(&mono_font, format!("Wheel: {}", controls.m.wheel()), 40, controls.m.pos(), Colour::white(), Vec2::new(1.0, 1.0));
         render.end_draw(&mut cam)?;
     }
 

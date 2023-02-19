@@ -26,13 +26,13 @@ impl Layer {
                 layer.tile_draws.push(
                     GameObject::new(
                         tile.tex,
-                        Rect::new(
+                        Some(Rect::new(
                             l.info.offset.x + (x as f64 * tile.rect.w),
                             l.info.offset.y + (y as f64 * tile.rect.h),
                             tile.rect.w,
                             tile.rect.h,
-                        ),
-                        tile.rect,
+                        )),
+                        Some(tile.rect),
                         l.info.parallax,
                         Colour::new(
                             l.info.tint.r as u8,
@@ -53,15 +53,18 @@ impl Layer {
         layer.image_draw = Some(
             GameObject::new(
                 tex,
-                Rect::new(l.info.offset.x, l.info.offset.y, l.width as f64, l.height as f64),
-                Rect::new(0.0, 0.0, l.width as f64, l.height as f64),
+                Some(Rect::new(
+                    l.info.offset.x,
+                    l.info.offset.y,
+                    l.width as f64,
+                    l.height as f64)),
+                Some(Rect::new(0.0, 0.0, l.width as f64, l.height as f64)),
                 l.info.parallax,
                 Colour::new(
                     l.info.colour.r as u8,
                     l.info.colour.g as u8,
                     l.info.colour.b as u8,
-                    l.info.colour.a as u8
-                )
+                    l.info.colour.a as u8)
             )
         );
         layer

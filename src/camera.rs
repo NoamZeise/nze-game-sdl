@@ -1,7 +1,34 @@
 use geometry::*;
-use crate::resources::{texture_manager::TextureDraw, font_manager::{DisposableTextDraw, TextDraw}, types::GameObject, resource, types::TextObject};
+use crate::resources::{types::TextureDraw, font_manager::{DisposableTextDraw, TextDraw}, types::GameObject, resource, types::TextObject};
 use crate::Colour;
 use std::vec::Drain;
+
+
+pub(crate) enum Draw {
+    Texture(TextureDraw),
+    Rect(Rect, Colour),
+    Text(TextDraw),
+    DisposableText(DisposableTextDraw),
+}
+
+macro_rules! draw_obj {
+    ($self:ident, $type:ident{$obj: expr}) => (
+        $type {
+            tex: $obj.get_texture(),
+            draw_rect: match $obj.rect {
+                Some(r) => Some($self.rect_to_cam_space(r, $obj.parallax)),
+                None => None,
+            },
+            tex_rect: $obj.tex_rect,
+            colour: $obj.colour,
+            angle: $obj.rotate,
+            centre: $obj.pivot,
+            flip_horizontal: $obj.flip_horizontal,
+            flip_vertical: $obj.flip_vertical,
+        }
+    )
+}
+
 
 /// Used for drawing to the canvas.
 ///
@@ -22,10 +49,7 @@ pub struct Camera {
     rect: Rect,
     window_size: Vec2,
     size_ratio: Vec2,
-    draws : Vec<TextureDraw>,
-    rect_draws: Vec<(Rect, Colour)>,
-    temp_text_draws: Vec<DisposableTextDraw>,
-    perm_text_draws: Vec<TextDraw>,
+    draws : Vec<Draw>,
 }
 
 impl Camera {
@@ -34,69 +58,47 @@ impl Camera {
             rect,
             window_size,
             draws: Vec::new(),
-            temp_text_draws: Vec::new(),
-            perm_text_draws: Vec::new(),
-            rect_draws: Vec::new(),
             size_ratio: Vec2::new(0.0, 0.0),
         };
         cam.update_size_ratio();
         cam
     }
     
-    pub(crate) fn drain_draws(&mut self) -> Drain<TextureDraw> { 
+    pub(crate) fn drain_draws(&mut self) -> Drain<Draw> { 
         self.draws.drain(..)
-    }
-
-    pub(crate) fn drain_temp_text_draws(&mut self) -> Drain<DisposableTextDraw> { 
-        self.temp_text_draws.drain(..)
-    }
-
-    pub(crate) fn drain_text_draws(&mut self) -> Drain<TextDraw> {
-        self.perm_text_draws.drain(..)
-    }
-
-    pub(crate) fn drain_rect_draws(&mut self) -> Drain<(Rect, Colour)> {
-        self.rect_draws.drain(..)
     }
 
     /// Draws a [GameObject] adjusted for the camera's `view`
     pub fn draw(&mut self, game_obj: &GameObject) {
         self.draws.push(
-            TextureDraw::new(
-                game_obj.get_texture(),
-                self.rect_to_cam_space(game_obj.rect, game_obj.parallax),
-                game_obj.tex_rect,
-                game_obj.colour,
-            )
+            Draw::Texture(draw_obj!(self, TextureDraw{game_obj}))
         );
     }
 
     /// Draws a disposable text texture adjusted for the camera's `view`
     pub fn draw_disposable_text(&mut self, font: &resource::Font, text: String, height: u32, pos: Vec2, colour: Colour, parallax: Vec2) {
         let rect = self.rect_to_cam_space(Rect::new(pos.x, pos.y, height as f64, height as f64), parallax);
-        self.temp_text_draws.push(DisposableTextDraw {
+        self.draws.push(Draw::DisposableText(DisposableTextDraw {
             font: *font,
             text,
             height: rect.h as u32,
             pos: rect.top_left(),
             colour,
             rect,
-        })
+        }))
     }
 
     /// Draws a [TextObject] adjusted by camera's `view` 
     pub fn draw_text(&mut self, text_obj: &TextObject) {
-        let rect = self.rect_to_cam_space(text_obj.rect, text_obj.parallax);
-        self.perm_text_draws.push(TextDraw {
-            text: text_obj.texture,
-            rect,
-            colour: text_obj.colour,
-        })
+        self.draws.push(Draw::Text(draw_obj!(self, TextDraw{text_obj})))
     }
 
     /// Draw a [Rect] with a [Colour] adjusted by the camera's `view` 
     pub fn draw_rect(&mut self, rect: Rect, colour: Colour, parallax: Vec2) {
-        self.rect_draws.push((self.rect_to_cam_space(rect, parallax), colour));
+        self.draws.push(
+            Draw::Rect(
+                self.rect_to_cam_space(rect, parallax), colour
+        ))
     }
 
     /// Get the current view offset

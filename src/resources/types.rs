@@ -38,34 +38,39 @@ impl Colour {
     }
 }
 
-/// used by `Camera` for drawing texures with texture rects and draw rects and a colour
+/// used by [crate::camera::Camera] for drawing texures with texture rects and draw rects and a colour
 #[derive(Clone, Copy)]
 pub struct GameObject {
     texture: resource::Texture,
-    pub rect: Rect,
-    pub tex_rect: Rect,
+    pub rect: Option<Rect>,
+    pub tex_rect: Option<Rect>,
     pub parallax: Vec2,
-    pub colour: Colour
+    pub colour: Colour,
+    pub rotate: f64,
+    pub pivot: Option<Vec2>,
+    pub flip_horizontal: bool,
+    pub flip_vertical: bool,
 }
 
 impl GameObject {
     pub fn new_from_tex(texture: resource::Texture) -> Self {
-        let r = Rect::new(0.0, 0.0, texture.width as f64, texture.height as f64);
-        Self {
+        Self::new(
             texture,
-            rect: r,
-            tex_rect : r,
-            parallax: Vec2::new(1.0, 1.0),
-            colour: Colour::white(),
-        }
+            Some(Rect::new(0.0, 0.0, texture.width as f64, texture.height as f64)),
+            None, Vec2::new(1.0, 1.0), Colour::white())
     }
-    pub fn new(texture : resource::Texture, rect : Rect, tex_rect: Rect, parallax : Vec2, colour: Colour) -> Self {
+    
+    pub fn new(texture : resource::Texture, rect : Option<Rect>, tex_rect: Option<Rect>, parallax : Vec2, colour: Colour) -> Self {
         Self {
             texture,
             rect,
             tex_rect,
             parallax,
             colour,
+            rotate: 0.0,
+            pivot: None,
+            flip_horizontal: false,
+            flip_vertical: false,
         }
     }
     pub(crate) fn get_texture(&self) -> resource::Texture {
@@ -73,17 +78,20 @@ impl GameObject {
     }
 }
 
-/// used by `Camera` for drawing loaded font texts
-#[derive(Clone, Copy)]
-pub struct TextObject {
-    pub(crate) texture: resource::Text,
-    pub rect: Rect,
-    pub parallax: Vec2,
-    pub colour: Colour,
-}
 
-impl TextObject {
-    pub fn new(text: resource::Text, rect: Rect, parallax: Vec2, colour: Colour) -> TextObject {
-        TextObject { texture: text, rect, parallax, colour}
-    }
+/// Used by [crate::camera::Camera]. An object that stores text with some drawing settings for rendering
+pub type TextObject = GameObject;
+
+
+/// holds a `Texture` and some `Rect`s for representing sprites
+#[derive(Clone, Copy)]
+pub(crate) struct TextureDraw {
+    pub draw_rect : Option<Rect>,
+    pub tex_rect : Option<Rect>,
+    pub colour : Colour,
+    pub tex  : resource::Texture,
+    pub angle: f64,
+    pub centre: Option<Vec2>,
+    pub flip_horizontal: bool,
+    pub flip_vertical: bool,
 }

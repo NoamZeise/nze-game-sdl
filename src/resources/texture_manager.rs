@@ -4,29 +4,9 @@ use sdl2::{image::LoadTexture, video::Window};
 use std::collections::HashMap;
 use std::path::Path;
 
-use crate::{resource, rect_conversion::RectConversion, Colour, error::Error, GameObject};
+use crate::{resource, rect_conversion::{RectConversion,  Vec2Conversion},
+            Colour, error::Error, GameObject, resources::types::TextureDraw};
 use crate::{unload_resource, load, file_err, draw_err, draw};
-use geometry::*;
-
-/// holds a `Texture` and some `Rect`s for representing sprites
-#[derive(Clone, Copy)]
-pub struct TextureDraw {
-    pub draw_rect : Rect,
-    pub tex_rect : Rect,
-    pub colour : Colour,
-    pub tex  : resource::Texture,
-}
-
-impl TextureDraw {
-    pub fn new(tex : resource::Texture, draw_rect : Rect, tex_rect: Rect, colour: Colour) -> Self {
-        TextureDraw {
-            draw_rect,
-            tex_rect,
-            colour,
-            tex
-        }
-    }
-}
 
 /// stores textures that are referenced by a [resource::Texture] object, created and owned by [crate::Render]
 pub struct TextureManager<'a, T> {
@@ -67,12 +47,8 @@ impl<'a, T> TextureManager<'a, T> {
     }
 
     draw!{
-        fn draw(self, tex_draw : TextureDraw) (
-            self.textures,
-            tex_draw.tex.id,
-            tex_draw.colour,
-            tex_draw.tex_rect.to_sdl_rect(),
-            tex_draw.draw_rect.to_sdl_rect())
+        fn draw(self, tex_draw : TextureDraw) 
+            self.textures
     }
     
     pub(crate) fn draw_rect(&self, canvas : &mut Canvas<Window>, rect : &geometry::Rect, colour : Colour) -> Result<(), Error> {

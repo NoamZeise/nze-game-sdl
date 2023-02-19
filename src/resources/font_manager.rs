@@ -4,15 +4,13 @@ use sdl2::{video::Window, pixels::Color, ttf};
 use std::collections::HashMap;
 use std::path::Path;
 
-use crate::{resource::{Font, Text}, Colour, Error, rect_conversion::RectConversion};
+use crate::{resource::{Font, Text}, Colour, Error, rect_conversion::{RectConversion, Vec2Conversion}};
 use crate::{file_err, font_err, draw_err, unload_resource, load, load_resource_helper, draw, TextObject};
+use super::types::TextureDraw;
+
 use geometry::*;
 
-pub struct TextDraw {
-    pub text: Text,
-    pub rect: Rect,
-    pub colour: Colour,
-}
+pub(crate) type TextDraw = TextureDraw;
 
 struct ResourceTextDraw<'a> {
     tex  : sdl2::render::Texture<'a>,
@@ -74,10 +72,13 @@ impl<'a, T: 'a> FontManager<'a, T> {
         let text_resource = Text { id: index, width: tex_width, height: tex_height};
         Ok(TextObject::new(
             text_resource,
-            get_text_rect_from_height(
-                Vec2::new(text_resource.width as f64, text_resource.height as f64),
+            Some(get_text_rect_from_height(
+                Vec2::new(
+                    text_resource.width as f64,
+                    text_resource.height as f64),
                 pos,
-                height),
+                height)),
+            None,
             parallax, Colour::white()
         ))
     }
@@ -88,7 +89,7 @@ impl<'a, T: 'a> FontManager<'a, T> {
     /// This function is only nessecary if you want to clear some room in memory to load more resources.
     /// For example you can unload assets from one level and load in the next which switching levels.
     pub fn unload_text_obj(&mut self, text_obj: TextObject) {
-        self.text_draws[text_obj.texture.id] = None;
+        self.text_draws[text_obj.get_texture().id] = None;
     }
 
     pub(crate) fn new(ttf_context : &'a ttf::Sdl2TtfContext, texture_creator : &'a TextureCreator<T>) -> Self {
@@ -119,14 +120,9 @@ impl<'a, T: 'a> FontManager<'a, T> {
     }
 
     draw!{
-        fn draw_text_draw(self, text_draw: TextDraw) (
-            self.text_draws,
-            text_draw.text.id,
-            text_draw.colour,
-            None,
-            text_draw.rect.to_sdl_rect())
+        fn draw_text_draw(self, text_draw: TextDraw) 
+            self.text_draws
     }
-
     
     fn get_rendered_text(&self, font: &Font, text: &str, height : u32, colour : Color) -> Result<ResourceTextDraw, Error> {
         self.get_rendered_text_at_position(font, text, height, Vec2::new(0.0, 0.0), colour)
