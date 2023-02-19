@@ -22,10 +22,7 @@ macro_rules! draw {
                             Some(r) => Some(r.to_sdl_rect()),
                             None => None,
                         },
-                        match $draw.draw_rect {
-                            Some(r) => Some(r.to_sdl_rect()),
-                            None => None,
-                        },
+                        $draw.draw_rect.to_sdl_rect(),
                         $draw.angle,
                         match $draw.centre {
                             Some(p) => Some(p.to_sdl_point()),

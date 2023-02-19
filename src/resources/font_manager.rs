@@ -72,12 +72,12 @@ impl<'a, T: 'a> FontManager<'a, T> {
         let text_resource = Text { id: index, width: tex_width, height: tex_height};
         Ok(TextObject::new(
             text_resource,
-            Some(get_text_rect_from_height(
+            get_text_rect_from_height(
                 Vec2::new(
                     text_resource.width as f64,
                     text_resource.height as f64),
                 pos,
-                height)),
+                height),
             None,
             parallax, Colour::white()
         ))

@@ -42,7 +42,7 @@ impl Colour {
 #[derive(Clone, Copy)]
 pub struct GameObject {
     texture: resource::Texture,
-    pub rect: Option<Rect>,
+    pub rect: Rect,
     pub tex_rect: Option<Rect>,
     pub parallax: Vec2,
     pub colour: Colour,
@@ -56,11 +56,11 @@ impl GameObject {
     pub fn new_from_tex(texture: resource::Texture) -> Self {
         Self::new(
             texture,
-            Some(Rect::new(0.0, 0.0, texture.width as f64, texture.height as f64)),
+            Rect::new(0.0, 0.0, texture.width as f64, texture.height as f64),
             None, Vec2::new(1.0, 1.0), Colour::white())
     }
     
-    pub fn new(texture : resource::Texture, rect : Option<Rect>, tex_rect: Option<Rect>, parallax : Vec2, colour: Colour) -> Self {
+    pub fn new(texture : resource::Texture, rect : Rect, tex_rect: Option<Rect>, parallax : Vec2, colour: Colour) -> Self {
         Self {
             texture,
             rect,
@@ -86,7 +86,7 @@ pub type TextObject = GameObject;
 /// holds a `Texture` and some `Rect`s for representing sprites
 #[derive(Clone, Copy)]
 pub(crate) struct TextureDraw {
-    pub draw_rect : Option<Rect>,
+    pub draw_rect : Rect,
     pub tex_rect : Option<Rect>,
     pub colour : Colour,
     pub tex  : resource::Texture,

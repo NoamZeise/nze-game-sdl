@@ -15,10 +15,7 @@ macro_rules! draw_obj {
     ($self:ident, $type:ident{$obj: expr}) => (
         $type {
             tex: $obj.get_texture(),
-            draw_rect: match $obj.rect {
-                Some(r) => Some($self.rect_to_cam_space(r, $obj.parallax)),
-                None => None,
-            },
+            draw_rect: $obj.rect,
             tex_rect: $obj.tex_rect,
             colour: $obj.colour,
             angle: $obj.rotate,
