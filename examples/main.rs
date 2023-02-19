@@ -14,7 +14,8 @@ pub fn main() -> Result<(), Error> {
     let mut render = Render::new(drawing_area, &context)?;
     let mut controls = Controls::new(&context)?;
    
-    let mono_font = render.font_manager.load_font(Path::new("resources/textures/fonts/FiraCode-Light.ttf"))?;
+    let mono_font = render.font_manager.load_font(
+        Path::new("resources/textures/fonts/FiraCode-Light.ttf"))?;
     
     let map = Map::new(
         Path::new("resources/map/test.tmx"), &mut render.texture_manager,
@@ -30,7 +31,9 @@ pub fn main() -> Result<(), Error> {
     
     //checking resource loading/unloading
     let mut is_gaia = true;
-    let mut ephemeral_obj = GameObject::new_from_tex(render.texture_manager.load(Path::new("resources/textures/gaia.png"))?);
+    let mut ephemeral_obj = GameObject::new_from_tex(
+        render.texture_manager.load(
+            Path::new("resources/textures/gaia.png"))?);
 
     let mut text = render
         .font_manager
@@ -47,25 +50,43 @@ pub fn main() -> Result<(), Error> {
         controls.update(&cam);
         
         // load/unload resources
-        if controls.kb.press(Key::L) || controls.c.press(0, controller::Button::A) {
+        if controls.kb.press(Key::L) ||
+            controls.c.press(0, controller::Button::A)
+        {
             render.texture_manager.unload_from_gameobject(ephemeral_obj);
             render.font_manager.unload_text_obj(text);
             if is_gaia {
                 ephemeral_obj = GameObject::new_from_tex(
-                    render.texture_manager.load(Path::new("resources/textures/error.png"))?);
-                text = render.font_manager.load_text_obj(&mono_font, "Error Text", Colour::new(200, 100, 70, 255),
-                                                         Vec2::new(100.0, 0.0), 10.0, Vec2::new(0.0, 0.0))?;
+                    render.texture_manager.load(
+                        Path::new("resources/textures/error.png"))?);
+                text = render.font_manager.load_text_obj(
+                    &mono_font,
+                    "Error Text",
+                    Colour::new(200, 100, 70, 255),
+                    Vec2::new(100.0, 0.0),
+                    10.0,
+                    Vec2::new(0.0, 0.0))?;
                 text.parallax = Vec2::new(1.0, 1.0);
             } else {
                 ephemeral_obj = GameObject::new_from_tex(
-                    render.texture_manager.load(Path::new("resources/textures/gaia.png"))?);
-                text = render.font_manager.load_text_obj(&mono_font, "The Planet Earth", Colour::new(100, 200, 70, 255),
-                                             Vec2::new(0.0, 0.0), 10.0, Vec2::new(0.0, 0.0))?;
+                    render.texture_manager.load(
+                        Path::new("resources/textures/gaia.png"))?);
+                text = render.font_manager.load_text_obj(
+                    &mono_font,
+                    "The Planet Earth",
+                    Colour::new(100, 200, 70, 255),
+                    Vec2::new(0.0, 0.0),
+                    10.0,
+                    Vec2::new(0.0, 0.0))?;
             }
             is_gaia = !is_gaia;
         }
         
         ephemeral_obj.rotate += controls.frame_elapsed * 30.0;
+
+        if controls.kb.press(Key::F) {
+            ephemeral_obj.flip_horizontal = !ephemeral_obj.flip_horizontal;
+        }
 
         if controls.kb.press(Key::P) {
             audio.sfx.play(sfx)?;
@@ -80,7 +101,13 @@ pub fn main() -> Result<(), Error> {
         map.draw(&mut cam);
         cam.draw(&ephemeral_obj);
         cam.draw_text(&text);
-        cam.draw_disposable_text(&mono_font, format!("Wheel: {}", controls.m.wheel()), 40, controls.m.pos(), Colour::white(), Vec2::new(1.0, 1.0));
+        cam.draw_disposable_text(
+            &mono_font,
+            format!("Wheel: {}", controls.m.wheel()),
+            40,
+            controls.m.pos(),
+            Colour::white(),
+            Vec2::new(1.0, 1.0));
         render.end_draw(&mut cam)?;
     }
 
