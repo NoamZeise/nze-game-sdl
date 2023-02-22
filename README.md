@@ -1,10 +1,10 @@
 # A framework for making games with rust
 
-This framework is made out of three crates in the include directory:
+This framework is made out of three parts:
 
 * sdl_helper - for hiding the implementation details of sdl2 in rust, and some helper functions for game development
-* tiled - for loading Tiled maps
-* geometry - for rectangle and vector maths
+* tiled - (in lib dir) for loading Tiled maps
+* geometry - (in lib dir) for rectangle and vector maths
 
 
 See the example folder (run with ```cargo run --example (name-of-example.rs)```.
@@ -24,7 +24,7 @@ See the example folder (run with ```cargo run --example (name-of-example.rs)```.
 3. Install SDL2, SDL2_image, SDL2_mixer, SDL2_ttf
 4. go to the root directory of this project and run 
 ```
-$ cargo run
+$ cargo run --example main
 ```
 
 ### Installing SDL2 on debian-based systems
@@ -34,7 +34,7 @@ $ sudo apt install libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-d
 ```
 ### Installing SDL2 on other systems
 
-follow the instructions for your system given in the repo for [rust-sdl2](https://github.com/Rust-SDL2/rust-sdl2), but remember you also need to get sdl2_mixer, sdl2_ttf and sdl2_image.
+Follow the instructions for your system given in the repo for [rust-sdl2](https://github.com/Rust-SDL2/rust-sdl2), but remember you also need to get sdl2_mixer, sdl2_ttf and sdl2_image libraries.
 
 
 ## Dependancies
@@ -44,6 +44,7 @@ follow the instructions for your system given in the repo for [rust-sdl2](https:
 
 ## Projects using this framework
 
+* [Bunny Patch - for GGJ2023 - Simulation](https://github.com/NoamZeise/BunnyPatch.git)
 * [Coupled Explorers - for LD51 - Platformer](https://github.com/NoamZeise/Coupled-Explorers-LD51)
 * [Hex - for a 48hr Jam - Falling Block Puzzle](https://github.com/NoamZeise/Hex)
 
