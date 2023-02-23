@@ -10,4 +10,4 @@ description = "Loads maps made with the map editor Tiled"
 
 [dependencies]
 quick-xml = "0.24.0"
-nze_geometry = {path = "../nze_geometry"}
+nze_geometry = {path = "../nze_geometry", version = "0.1.0"}
