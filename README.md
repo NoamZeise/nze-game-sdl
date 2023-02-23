@@ -16,9 +16,9 @@ This framework is made out of three parts:
 
 ## Setup 
 
-1. Clone this repository 
+1. Clone this repository
 2. Install [Rust](https://www.rust-lang.org/tools/install) if you haven't already
-3. Install SDL2, SDL2_image, SDL2_mixer, SDL2_ttf
+3. Install SDL2, SDL2_image, SDL2_mixer, SDL2_ttf (see sections below for details)
 4. go to the root directory of this project and run 
 ```
 $ cargo run --example main
