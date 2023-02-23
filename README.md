@@ -2,12 +2,9 @@
 
 This framework is made out of three parts:
 
-* sdl_helper - for hiding the implementation details of sdl2 in rust, and some helper functions for game development
-* tiled - (in lib dir) for loading Tiled maps
-* geometry - (in lib dir) for rectangle and vector maths
-
-
-See the example folder (run with ```cargo run --example (name-of-example.rs)```.
+* nze\_game\_sdl - for hiding the implementation details of sdl2 in rust, and some helper functions for game development
+* nze_tiled - (in lib dir) for loading Tiled maps
+* nze_geometry - (in lib dir) for 2D geometry types and functions
 
 ## Features
 
@@ -36,13 +33,12 @@ $ sudo apt install libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-d
 
 Follow the instructions for your system given in the repo for [rust-sdl2](https://github.com/Rust-SDL2/rust-sdl2), but remember you also need to get sdl2_mixer, sdl2_ttf and sdl2_image libraries.
 
-
 ## Dependancies
 
 * [rust-sdl2](https://crates.io/crates/sdl2) for windowing, rendering, input, resource loading
 * [quick_xml](https://crates.io/crates/quick-xml) for loading tiled maps
 
-## Projects using this framework
+## Projects using this framework (older versions)
 
 * [Bunny Patch - for GGJ2023 - Simulation](https://github.com/NoamZeise/BunnyPatch.git)
 * [Coupled Explorers - for LD51 - Platformer](https://github.com/NoamZeise/Coupled-Explorers-LD51)
@@ -51,3 +47,6 @@ Follow the instructions for your system given in the repo for [rust-sdl2](https:
 ## TODO
 
 * Better resolution controls
+* Fade effects for audio
+* Add point/line render options
+* make (tiled, font, audio) dependancies optional
