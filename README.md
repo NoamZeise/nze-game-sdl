@@ -1,4 +1,4 @@
-# A framework for making games with rust
+# A framework for making 2D games with rust, uses SDL2.
 
 This framework is made out of three parts:
 
