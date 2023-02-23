@@ -4,8 +4,9 @@ version = "0.1.0"
 authors = ["NoamZeise"]
 license = "MIT OR Apache-2.0"	
 edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+exclude = ["test-resources/*"]
+repository = "https://github.com/NoamZeise/nze-game-sdl"
+description = "Loads maps made with the map editor Tiled"
 
 [dependencies]
 quick-xml = "0.24.0"
