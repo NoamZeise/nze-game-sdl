@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 use super::{helper::*, LayerData, Colour};
 use super::error::TiledError;
 use super::Properties;
-use geometry::{Rect, Vec2};
+use nze_geometry::*;
 
 use quick_xml::events::attributes::Attribute;
 use quick_xml::events::{BytesStart, BytesText};

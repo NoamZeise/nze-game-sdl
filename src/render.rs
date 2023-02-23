@@ -4,7 +4,7 @@ use sdl2::video::{WindowContext, FullscreenType};
 use crate::camera::Draw;
 use crate::{Camera, DrawingArea, Error, ContextSdl, helper_err};
 use crate::manager::{FontManager, TextureManager};
-use geometry::Vec2;
+use crate::geometry::Vec2;
 
 /// Holds ownership of a [DrawingArea] and texture and font managers, created using a [ContextSdl]
 pub struct Render<'sdl> {

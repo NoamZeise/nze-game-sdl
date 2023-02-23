@@ -2,7 +2,7 @@ use sdl2::{Sdl, VideoSubsystem, AudioSubsystem, image};
 use sdl2::video::{Window, WindowContext};
 use sdl2::render::{Canvas, TextureCreator};
 
-use geometry::*;
+use crate::geometry::*;
 use crate::{Error, init_err, Camera};
 
 /// This holds ownership of many sdl types that are required for being able to use it,

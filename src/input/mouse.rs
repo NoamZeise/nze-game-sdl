@@ -4,9 +4,9 @@
 use sdl2::event::Event;
 
 /// represents the buttons on a mouse that sdl tracks the state of
-pub use sdl2::mouse::MouseButton as Button;
+pub type Button = sdl2::mouse::MouseButton;
 
-use geometry::Vec2;
+use crate::geometry::Vec2;
 
 use crate::Camera;
 

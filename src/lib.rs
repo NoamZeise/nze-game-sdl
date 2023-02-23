@@ -23,4 +23,4 @@ pub mod manager {
 }
 pub use resources::types::{Colour, GameObject, TextObject};
 pub use camera::Camera;
-pub use geometry;
+pub use nze_geometry as geometry;

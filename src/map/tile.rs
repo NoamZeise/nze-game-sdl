@@ -1,5 +1,6 @@
 use crate::resource::Texture;
-use geometry::Rect;
+use crate::geometry::Rect;
+use super::tiled::Tileset;
 use crate::Error;
 
 #[derive(Clone)]
@@ -17,12 +18,13 @@ impl Tile {
     }
 }
 
-pub fn load_tileset(tiles: &mut Vec<Tile>, ts: &tiled::Tileset, tex: Texture) -> Result<(), Error> {
+pub fn load_tileset(tiles: &mut Vec<Tile>, ts: &Tileset, tex: Texture) -> Result<(), Error> {
     let mut id = ts.first_tile_id as usize;
     for y in 0..(ts.tile_count / ts.column_count) {
         for x in 0..ts.column_count {
             if id >= tiles.len() {
-                return Err(Error::LoadFile(String::from("Map Tile Count did not match actual tilecount")));
+                return Err(Error::LoadFile(
+                    String::from("Map Tile Count did not match actual tilecount")));
             }
             
             tiles[id].tex = tex;

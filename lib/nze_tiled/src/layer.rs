@@ -1,5 +1,5 @@
 use super::{Properties, error::TiledError, helper::*, Colour};
-use geometry::*;
+use nze_geometry::*;
 
 use quick_xml::reader::Reader;
 use quick_xml::events::{BytesStart, BytesText};

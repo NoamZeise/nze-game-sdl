@@ -2,7 +2,7 @@
 
 use std::path::Path;
 
-pub use tiled;
+pub use nze_tiled as tiled;
 use crate::Camera;
 use crate::manager::{FontManager, TextureManager};
 use crate::Error;
@@ -27,15 +27,23 @@ impl Map {
     /// Will throw a `LoadFile` error if there is an error loading the tiled map with `tiled`
     ///
     /// Will pass on any errors from loading resources 
-    pub fn new<'sdl, TexType>(filename: &Path, tex_manager : &'sdl mut TextureManager<TexType>, font_folder: &Path, font_manager: &'sdl mut FontManager<TexType>) -> Result<Self, Error> {
+    pub fn new<'sdl, TexType>(filename: &Path,
+                              tex_manager : &'sdl mut TextureManager<TexType>,
+                              font_folder: &Path,
+                              font_manager: &'sdl mut FontManager<TexType>)
+                              -> Result<Self, Error> {
         let mut map = Self {
-            tiled_map: tiled::Map::new(filename).map_err(|e| { Error::LoadFile(format!("{:?}", e))})?,
+            tiled_map: tiled::Map::new(filename).map_err(
+                |e| { Error::LoadFile(format!("{:?}", e))}
+            )?,
             tiles: Vec::new(),
             layers: Vec::new(),
         };
 
         map.layers.resize(
-            map.tiled_map.layers.len() + map.tiled_map.img_layers.len() + map.tiled_map.obj_groups.len(),
+            map.tiled_map.layers.len() +
+                map.tiled_map.img_layers.len() +
+                map.tiled_map.obj_groups.len(),
             Layer::blank()
         );
 
@@ -58,7 +66,9 @@ impl Map {
         }
     }
 
-    fn load_tilesets<'sdl, TexType>(&mut self, tex_manager : &'sdl mut TextureManager<TexType>) -> Result<(), Error> {
+    fn load_tilesets<'sdl, TexType>(&mut self,
+                                    tex_manager : &'sdl mut TextureManager<TexType>)
+                                    -> Result<(), Error> {
         self.tiles.resize(self.tiled_map.total_tiles as usize, Tile::new());
         // blank tile
         self.tiles[0].rect.w = self.tiled_map.tile_width as f64;
@@ -75,16 +85,24 @@ impl Map {
         }
     }
 
-    fn set_img_layers<'sdl, TexType>(&mut self, tex_manager : &'sdl mut TextureManager<TexType>) -> Result<(), Error> {
+    fn set_img_layers<'sdl, TexType>(&mut self,
+                                     tex_manager : &'sdl mut TextureManager<TexType>)
+                                     -> Result<(), Error> {
         for l in self.tiled_map.img_layers.iter() {
             self.layers[l.info.layer_position as usize] = Layer::new_image_layer(
-                l, tex_manager.load(&self.tiled_map.tilemap_directory.join(&l.image_path))?
+                l,
+                tex_manager.load(
+                    &self.tiled_map.tilemap_directory.join(&l.image_path)
+                )?
             )
         }
         Ok(())
     }
 
-    fn set_obj_group_layers<'sdl, TexType>(&mut self, font_folder: &Path, font_manager : &'sdl mut FontManager<TexType>) -> Result<(), Error> {
+    fn set_obj_group_layers<'sdl, TexType>(&mut self,
+                                           font_folder: &Path,
+                                           font_manager : &'sdl mut FontManager<TexType>)
+                                           -> Result<(), Error> {
         for l in self.tiled_map.obj_groups.iter() {
             self.layers[l.info.layer_position as usize] = Layer::new_object_layer(
                 font_folder,

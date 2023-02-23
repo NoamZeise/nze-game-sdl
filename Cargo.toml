@@ -1,14 +1,14 @@
 [package]
-name = "sdl_helper"
+name = "nze_game_sdl"
 version = "0.1.0"
+authors = ["NoamZeise"]
+license = "MIT OR Apache-2.0"
 edition = "2021"
+#repository = "https://github.com/NoamZeise/sdl2-rs-game-template"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-geometry = { path = "lib/geometry/" }
-tiled = { path = "lib/tiled/" }
-
-[dependencies.sdl2]
-version = "0.35"
-features = ["ttf", "image", "mixer"]
+nze_geometry = { path = "lib/nze_geometry/" }
+nze_tiled = { path = "lib/nze_tiled/" }
+sdl2 = { version = "0.35", features = ["ttf", "image", "mixer"] }

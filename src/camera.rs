@@ -1,7 +1,14 @@
-use geometry::*;
-use crate::resources::{types::TextureDraw, font_manager::{DisposableTextDraw, TextDraw}, types::GameObject, resource, types::TextObject};
-use crate::Colour;
 use std::vec::Drain;
+
+use crate::geometry::*;
+use crate::resources::{
+    types::TextureDraw,
+    font_manager::{DisposableTextDraw, TextDraw},
+    types::GameObject,
+    resource,
+    types::TextObject,
+};
+use crate::Colour;
 
 
 pub(crate) enum Draw {

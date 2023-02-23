@@ -1,10 +1,10 @@
-use sdl_helper::map::Map;
-use sdl_helper::{
+use nze_game_sdl::map::Map;
+use nze_game_sdl::{
     Camera, Colour, Render,
     audio::AudioManager,
     DrawingArea, Error, GameObject};
-use sdl_helper::input::{keyboard::Key, controller, Controls};
-use sdl_helper::geometry::*;
+use nze_game_sdl::input::{keyboard::Key, controller, Controls};
+use nze_game_sdl::geometry::{Rect, Vec2};
 
 use std::path::Path;
 

@@ -1,4 +1,4 @@
-use geometry::*;
+use crate::geometry::*;
 use sdl2::pixels::Color;
 use crate::resource;
 
@@ -38,7 +38,8 @@ impl Colour {
     }
 }
 
-/// used by [crate::camera::Camera] for drawing texures with texture rects and draw rects and a colour
+/// used by [crate::camera::Camera] for drawing texures with texture rects
+/// and draw rects and a colour.
 #[derive(Clone, Copy)]
 pub struct GameObject {
     texture: resource::Texture,
@@ -60,7 +61,11 @@ impl GameObject {
             None, Vec2::new(1.0, 1.0), Colour::white())
     }
     
-    pub fn new(texture : resource::Texture, rect : Rect, tex_rect: Option<Rect>, parallax : Vec2, colour: Colour) -> Self {
+    pub fn new(texture : resource::Texture,
+               rect : Rect,
+               tex_rect: Option<Rect>,
+               parallax : Vec2,
+               colour: Colour) -> Self {
         Self {
             texture,
             rect,
@@ -79,11 +84,12 @@ impl GameObject {
 }
 
 
-/// Used by [crate::camera::Camera]. An object that stores text with some drawing settings for rendering
+/// Used by [crate::camera::Camera]. An object that stores text
+/// with some drawing settings for rendering.
 pub type TextObject = GameObject;
 
 
-/// holds a `Texture` and some `Rect`s for representing sprites
+/// Holds a `Texture` and some `Rect`s for representing sprites.
 #[derive(Clone, Copy)]
 pub(crate) struct TextureDraw {
     pub draw_rect : Rect,

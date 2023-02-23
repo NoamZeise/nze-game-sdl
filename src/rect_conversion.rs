@@ -1,4 +1,4 @@
-use geometry::{Rect, Vec2};
+use crate::geometry::{Rect, Vec2};
 use sdl2::{self, rect::Point};
 
 pub trait RectConversion {

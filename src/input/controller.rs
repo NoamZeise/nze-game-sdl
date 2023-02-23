@@ -1,15 +1,19 @@
-//! Holds some enums that can be used to query controller state using `c` memeber of  [crate::input::Controls]
+//! Holds some enums that can be used to query controller state
+//! using `c` memeber of  [crate::input::Controls]
 
 use std::collections::HashMap;
 
-use geometry::Vec2;
-use sdl2::event::Event;
-use sdl2::GameControllerSubsystem;
+use crate::geometry::Vec2;
+use sdl2::{
+    event::Event,
+    GameControllerSubsystem,
+    controller::Axis,
+};
+
 use sdl2::controller::GameController as sdlController;
-use sdl2::controller::Axis;
 
 /// represents each of the buttons on a standart xInput controller
-pub use sdl2::controller::Button as Button;
+pub type Button = sdl2::controller::Button;
 
 /// represents each side of the controls, eg left joystick/trigger and right joystick/trigger
 pub enum Side {
@@ -139,13 +143,14 @@ impl ControllerHandler {
             !self.prev_controllers[index].button[button as usize]
     }
 
-    /// get a 2d vector representing the direction of the joystick. each direction ranges from `0.0` to `1.0`
+    /// get a 2d vector representing the direction of the joystick.
+    /// Each direction ranges from `0.0` to `1.0`.
     ///
-    /// retuns `0.0` if the controller isn't connected
+    /// Retuns `0.0` if the controller isn't connected.
     ///
-    /// use [Side] left and right to get the state of the two joysticks
+    /// Use [Side] left and right to get the state of the two joysticks.
     ///
-    /// the `self.axis_deadzone` member of `Control` is automatically applied to the joystick values
+    /// The `self.axis_deadzone` member of `Control` is automatically applied to the joystick values.
     pub fn joy(&self, index: usize, joy: Side) -> Vec2 {
         if index >= self.controllers.len() { return Vec2::new(0.0, 0.0); }
         match joy {
@@ -158,15 +163,15 @@ impl ControllerHandler {
         }
     }
 
-    /// get a float representing the amount of travel the analogue trigger has gone through.
+    /// Get a float representing the amount of travel the analogue trigger has gone through.
     ///
-    /// values range from `0.0` to `1.0`
+    /// Values range from `0.0` to `1.0`.
     ///
-    /// returns `0.0` if the controller isn't connected
+    /// Returns `0.0` if the controller isn't connected.
     ///
-    /// the `side` parameter will give you the left or right analogue trigger
+    /// The `side` parameter will give you the left or right analogue trigger.
     ///
-    /// the `self.axis_deadzone` member of `Control` is automatically applied to the trigger values
+    /// The `self.axis_deadzone` member of `Control` is automatically applied to the trigger values.
     pub fn trigger(&self, index: usize, side: Side) -> f64 {
         if index >= self.controllers.len() { return 0.0; }
         match side {
@@ -179,26 +184,27 @@ impl ControllerHandler {
     ///
     /// If the controller does not support rumble, this does nothing.
     ///
-    /// If you set the duration to `u32::MAX` the duration will be very short, so use
-    /// some value smaller than that.
+    /// If you set the duration to `u32::MAX` the duration will be very short,
+    /// so use some value smaller than that if you want it to rumble for a long time.
     pub fn rumble(&mut self, index: usize, low_motor: u16,
                                  high_motor: u16, duration: u32) {
         if index >= self.controllers.len() { return; }
         match self.sdl_controllers.get_mut(&self.controllers[index].id) {
             None => (),
             Some(c) => { match c.set_rumble(low_motor, high_motor, duration) {
-                _ => () // there will be an error if controller doesn't support rumble,
-                // We will ignore this, as rumble isn't usually essential to a game
+                _ => () // There will be an error if controller doesn't support rumble,
+                // We will ignore this, as rumble isn't usually essential to a game.
             };},
         };
     }
 }
 
-
-fn deadzone(val:f64,dz:f64) -> f64 {
+/// Apply deadzone for a given value.
+fn deadzone(val:f64, dz:f64) -> f64 {
     if val.abs() > dz { val } else { 0.0 }
 }
 
+// Apply deadzone for a given vector.
 fn vec_deadzone(v:Vec2, dz:Vec2) -> Vec2 {
     let mut  n_v = v;
     n_v.x = deadzone(v.x, dz.x);
@@ -206,6 +212,7 @@ fn vec_deadzone(v:Vec2, dz:Vec2) -> Vec2 {
     n_v
 }
 
+/// To get the size of our array of booleans for button states.
 const CONTROLLER_BTN_MAX : usize = Button::Touchpad as usize + 1;
 
 #[derive(Clone, Copy)]

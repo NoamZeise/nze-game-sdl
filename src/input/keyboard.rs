@@ -3,7 +3,7 @@
 /// An enum of keyboard buttons used to repressent the keys on a keyboard
 ///
 /// See `key!` macro in crate root for shorthand use of the key array
-pub use sdl2::keyboard::Scancode as Key;
+pub type Key = sdl2::keyboard::Scancode;
 
 use sdl2::event::Event;
 

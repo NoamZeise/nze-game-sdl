@@ -6,8 +6,14 @@
 use std::collections::HashMap;
 use std::path::Path;
 use sdl2::mixer;
-use sdl2::mixer::{InitFlag, Chunk};
-use crate::{Error, init_err, resource::SoundEffect, resource::Music, use_resource, unload_resource};
+use crate::{
+    Error,
+    init_err,
+    resource::SoundEffect,
+    resource::Music,
+    use_resource,
+    unload_resource
+};
 
 
 macro_rules! audio_load {
@@ -49,7 +55,7 @@ impl<'a> AudioManager<'a> {
             512, // between 256 and 1024 recommened, lower number = lower latency but not as compatible
         ))?;
 
-        let _mixer_context = init_err!(mixer::init(InitFlag::all()))?;
+        let _mixer_context = init_err!(mixer::init(mixer::InitFlag::all()))?;
 
         Ok(AudioManager {
             _mixer_context,
@@ -62,7 +68,7 @@ impl<'a> AudioManager<'a> {
 
 /// Load and play [SoundEffect], created and owned by [AudioManager]
 pub struct SfxManager {
-    sound_effects: Vec<Option<Chunk>>,
+    sound_effects: Vec<Option<mixer::Chunk>>,
     sound_effects_paths: HashMap<String, usize>,
 }
 
@@ -75,10 +81,10 @@ impl SfxManager {
         /// load sound effect to memory
         , load(self) -> SoundEffect,
         self.sound_effects, self.sound_effects_paths, "Sound Effect",
-        Chunk::from_file
+        mixer::Chunk::from_file
     );
 
-    fn get_sfx(&mut self, sfx: SoundEffect) -> Result<&mut Chunk, Error> {
+    fn get_sfx(&mut self, sfx: SoundEffect) -> Result<&mut mixer::Chunk, Error> {
         use_resource!(
             self.sound_effects, sfx.id,
             Some(s) => {

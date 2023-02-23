@@ -1,11 +1,18 @@
- use std::path::Path;
- use sdl_helper::{GameObject, input::Controls, Render, DrawingArea, Error, input::keyboard::Key};
+use std::path::Path;
+use nze_game_sdl::{
+    GameObject,
+    Render, DrawingArea,
+    Error,
+    input::Controls,
+    input::keyboard::Key,
+    geometry::{Rect, Vec2},
+};
 
 pub fn main() -> Result<(), Error> {
     let (mut cam, drawing_area, context) = DrawingArea::new(
         "Name of Game",                              // window name
-        geometry::Rect::new(0.0, 0.0, 400.0, 400.0), // window camera
-        geometry::Vec2::new(400.0, 400.0)            // window size
+        Rect::new(0.0, 0.0, 400.0, 400.0), // window camera
+        Vec2::new(400.0, 400.0)            // window size
     )?;
     let mut render = Render::new(drawing_area, &context)?;
     let mut controls = Controls::new(&context)?;
