@@ -8,7 +8,7 @@ This framework is made out of three parts:
 
 ## Features
 
-* window creation and keyboard/mouse input
+* window creation and keyboard/mouse/controller input
 * loading and drawing textures and fonts to the screen
 * loading and drawing [Tiled](https://www.mapeditor.org/) maps 
 * 2D camera for scaling and moving drawn textures and fonts
