@@ -22,7 +22,7 @@ macro_rules! draw_obj {
     ($self:ident, $type:ident{$obj: expr}) => (
         $type {
             tex: $obj.get_texture(),
-            draw_rect: $obj.rect,
+            draw_rect: $self.rect_to_cam_space($obj.rect, $obj.parallax),
             tex_rect: $obj.tex_rect,
             colour: $obj.colour,
             angle: $obj.rotate,
