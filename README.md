@@ -2,9 +2,12 @@
 
 This framework is made out of three parts:
 
-* nze\_game\_sdl - for hiding the implementation details of sdl2 in rust, and some helper functions for game development
+* nze\_game\_sdl - for hiding the implementation details of sdl2 in rust. Load resources (texture, font, audio), rendering, 2D camera, audio playback, drawing tilemaps
+User Input, Windowing
 * nze_tiled - (in lib dir) for loading Tiled maps
 * nze_geometry - (in lib dir) for 2D geometry types and functions
+
+[Documentation](https://docs.rs/nze_game_sdl/latest/nze_game_sdl/)
 
 ## Features
 
