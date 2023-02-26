@@ -18,7 +18,7 @@ pub struct Rect {
 
 impl Rect {
     /// create a new [Rect] with supplied x, y, w, h values
-    pub fn new(x: f64, y: f64, w: f64, h: f64) -> Self {
+    pub const fn new(x: f64, y: f64, w: f64, h: f64) -> Self {
         Rect { x, y, w, h }
     }
 

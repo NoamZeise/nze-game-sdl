@@ -1,7 +1,7 @@
 use std::ops;
 
 /// A 2D Vector
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq, Debug)]
 pub struct Vec2 {
     pub x : f64,
     pub y : f64,
@@ -23,6 +23,12 @@ impl ops::Add<Vec2> for Vec2 {
     type Output = Vec2;
     fn add(self, other : Vec2) -> Vec2 {
         Vec2::new(self.x + other.x, self.y + other.y)
+    }
+}
+
+impl ops::AddAssign<Vec2> for Vec2 {
+    fn add_assign(&mut self, other: Vec2) {
+        *self = *self + other;
     }
 }
 
@@ -52,4 +58,8 @@ impl ops::Div<f64> for Vec2 {
     fn div(self, other: f64) -> Vec2 {
         Vec2::new(self.x / other, self.y / other)
     }
+}
+
+impl Eq for Vec2 {
+    
 }

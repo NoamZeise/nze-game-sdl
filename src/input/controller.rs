@@ -16,6 +16,7 @@ use sdl2::controller::GameController as sdlController;
 pub type Button = sdl2::controller::Button;
 
 /// represents each side of the controls, eg left joystick/trigger and right joystick/trigger
+#[derive(Copy, Clone)]
 pub enum Side {
     Left,
     Right,
