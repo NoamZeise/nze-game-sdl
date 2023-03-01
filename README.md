@@ -26,6 +26,7 @@ User Input, Windowing
 ```
 $ cargo run --example main
 ```
+to make sure everything is working.
 
 ### Installing SDL2 on debian-based systems
 Run the following command
@@ -38,14 +39,15 @@ Follow the instructions for your system given in the repo for [rust-sdl2](https:
 
 ## Dependancies
 
-* [rust-sdl2](https://crates.io/crates/sdl2) for windowing, rendering, input, resource loading
+* [rust-sdl2](https://crates.io/crates/sdl2) for windowing, rendering, input, resource loading (also need the SDL2  C libraries installed on the system, see Setup for details)
 * [quick_xml](https://crates.io/crates/quick-xml) for loading tiled maps
 
-## Projects using this framework (older versions)
+## Projects using this framework
 
-* [Bunny Patch - for GGJ2023 - Simulation](https://github.com/NoamZeise/BunnyPatch.git)
-* [Coupled Explorers - for LD51 - Platformer](https://github.com/NoamZeise/Coupled-Explorers-LD51)
-* [Hex - for a 48hr Jam - Falling Block Puzzle](https://github.com/NoamZeise/Hex)
+* [DeliCatEssen - for DSJ2023 - Falling Puzzle](https://github.com/NoamZeise/DSJ2023)
+* [Bunny Patch - for GGJ2023 - Simulation](https://github.com/NoamZeise/BunnyPatch) - outdated version of lib
+* [Coupled Explorers - for LD51 - Platformer](https://github.com/NoamZeise/Coupled-Explorers-LD51) - very outdated version of lib
+* [Hex - for a 48hr Jam - Falling Block Puzzle](https://github.com/NoamZeise/Hex) - very outdated version lib
 
 ## TODO
 
