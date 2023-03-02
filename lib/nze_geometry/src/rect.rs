@@ -23,7 +23,7 @@ impl Rect {
     }
 
     /// construct a rect where the x, y, w, h components are all 0.0
-    pub fn zero() -> Rect {
+    pub const fn zero() -> Rect {
         Rect::new(0.0, 0.0, 0.0, 0.0)
     }
 
