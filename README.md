@@ -1,6 +1,6 @@
-# A framework for making 2D games with rust, uses SDL2.
+# A library for making 2D games with rust, uses SDL2.
 
-This framework is made out of three parts:
+This library is made out of three crates:
 
 * nze\_game\_sdl - for hiding the implementation details of sdl2 in rust. Load resources (texture, font, audio), rendering, 2D camera, audio playback, drawing tilemaps
 User Input, Windowing
@@ -8,6 +8,8 @@ User Input, Windowing
 * nze_geometry - (in lib dir) for 2D geometry types and functions
 
 [Documentation](https://docs.rs/nze_game_sdl/latest/nze_game_sdl/)
+
+Check out the examples folder for how you might use the library
 
 ## Features
 
