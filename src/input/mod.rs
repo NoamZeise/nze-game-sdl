@@ -12,6 +12,7 @@ use std::time::Instant;
 pub mod mouse;
 pub mod controller;
 pub mod keyboard;
+pub mod multi;
 use controller::ControllerHandler;
 use keyboard::Keyboard;
 use mouse::Mouse;
