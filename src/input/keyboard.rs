@@ -99,7 +99,7 @@ impl Keyboard {
     }
 
     /// returns true if the key is being held down
-    pub fn down(&self, key: Key) -> bool {
+    pub fn hold(&self, key: Key) -> bool {
         self.input.keys[key as usize]
     }
 

@@ -17,6 +17,7 @@ pub fn main() -> Result<(), Error> {
     )?;
     let mut render = Render::new(drawing_area, &context)?;
     let mut controls = Controls::new(&context)?;
+
    
     let mono_font = render.font_manager.load_font(
         Path::new("resources/textures/fonts/FiraCode-Light.ttf"))?;
@@ -123,16 +124,16 @@ fn cam_controls(render: &mut Render, controls: &mut Controls, cam: &mut Camera) 
     let prev_frame = controls.frame_elapsed;
     let mut pos = cam.get_offset();
     const SPEED : f64 = 500.0;
-    if controls.kb.down(Key::Left) {
+    if controls.kb.hold(Key::Left) {
         pos.x -= SPEED * prev_frame;
     }
-    if controls.kb.down(Key::Right) {
+    if controls.kb.hold(Key::Right) {
         pos.x += SPEED * prev_frame;
     }
-    if controls.kb.down(Key::Up) {
+    if controls.kb.hold(Key::Up) {
         pos.y -= SPEED * prev_frame;
     }
-    if controls.kb.down(Key::Down) {
+    if controls.kb.hold(Key::Down) {
         pos.y += SPEED * prev_frame;
     }
 
@@ -145,7 +146,7 @@ fn cam_controls(render: &mut Render, controls: &mut Controls, cam: &mut Camera) 
     let mut win_size_update = false;
     let mut cs = cam.get_window_size();
     
-    if controls.kb.down(Key::Equals) {
+    if controls.kb.hold(Key::Equals) {
         if cs.x < cam.get_view_size().x {
             cs.x *= 2.0;
             cs.y *= 2.0;
@@ -155,7 +156,7 @@ fn cam_controls(render: &mut Render, controls: &mut Controls, cam: &mut Camera) 
         }
         win_size_update = true;
     }
-    if controls.kb.down(Key::Minus) {
+    if controls.kb.hold(Key::Minus) {
         if cs.x <= cam.get_view_size().x {
             cs.x /= 2.0;
             cs.y /= 2.0;
@@ -166,22 +167,22 @@ fn cam_controls(render: &mut Render, controls: &mut Controls, cam: &mut Camera) 
         win_size_update = true;
     }
 
-    if controls.kb.down(Key::D) {
+    if controls.kb.hold(Key::D) {
         cs.x += SPEED * prev_frame;
         win_size_update = true;
     }
-    if controls.kb.down(Key::A) {
+    if controls.kb.hold(Key::A) {
         
         cs.x -= SPEED * prev_frame;
         win_size_update = true;
     }
-    if controls.kb.down(Key::W) {
+    if controls.kb.hold(Key::W) {
         
         cs.y += SPEED * prev_frame;
         win_size_update = true;
     }
 
-    if controls.kb.down(Key::S) {
+    if controls.kb.hold(Key::S) {
         
         cs.y -= SPEED * prev_frame;
         win_size_update = true;
@@ -195,7 +196,7 @@ fn cam_controls(render: &mut Render, controls: &mut Controls, cam: &mut Camera) 
         render.set_win_size(cam, cs)?;
     }
 
-    if controls.kb.down(Key::Escape) {
+    if controls.kb.hold(Key::Escape) {
         controls.should_close = true;
     }
     

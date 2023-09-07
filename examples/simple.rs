@@ -29,23 +29,23 @@ pub fn main() -> Result<(), Error> {
     while !controls.should_close {
         controls.update(&cam);
         
-        if controls.kb.down(Key::D) {
+        if controls.kb.hold(Key::D) {
             obj.rect.x += SPEED * controls.frame_elapsed;
         }
 
-        if controls.kb.down(Key::A) {
+        if controls.kb.hold(Key::A) {
             obj.rect.x -= SPEED * controls.frame_elapsed;
         }
 
-        if controls.kb.down(Key::W) {
+        if controls.kb.hold(Key::W) {
             obj.rect.y -= SPEED * controls.frame_elapsed;
         }
         
-        if controls.kb.down(Key::S) {
+        if controls.kb.hold(Key::S) {
             obj.rect.y += SPEED * controls.frame_elapsed;
         }
 
-        if controls.kb.down(Key::Escape) {
+        if controls.kb.hold(Key::Escape) {
             controls.should_close = true;
         }
         

@@ -56,16 +56,16 @@ impl Game {
             controls.should_close = true;
         }
         self.mov = Vec2::zero();
-        if controls.kb.down(Key::W) {
+        if controls.kb.hold(Key::W) {
             self.mov.y -= SPEED * controls.frame_elapsed;
         }
-        if controls.kb.down(Key::A) {
+        if controls.kb.hold(Key::A) {
             self.mov.x -= SPEED * controls.frame_elapsed;
         }
-        if controls.kb.down(Key::S) {
+        if controls.kb.hold(Key::S) {
             self.mov.y += SPEED * controls.frame_elapsed;
         }
-        if controls.kb.down(Key::D) {
+        if controls.kb.hold(Key::D) {
             self.mov.x += SPEED * controls.frame_elapsed;
         }
     }
