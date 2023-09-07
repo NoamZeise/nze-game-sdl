@@ -104,6 +104,7 @@ impl MultiButton {
             self.current_timer = 0.0;
         } else if self.timeout != 0.0 && self.current_timer > self.timeout {
             self.prev_input = false;
+            self.current_timer = 0.0;
         }
     }
 }
